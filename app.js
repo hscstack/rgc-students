@@ -33,6 +33,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Search Context Banner
   const searchContextBanner = document.getElementById('search-context-banner');
 
+  // Privacy Policy Elements
+  const openPrivacyBtn = document.getElementById('open-privacy-btn');
+  const privacyModal = document.getElementById('privacy-modal');
+  const privacyModalInner = document.getElementById('privacy-modal-inner');
+  const privacyModalClose = document.getElementById('privacy-modal-close');
+  const privacyModalOkBtn = document.getElementById('privacy-modal-ok-btn');
+
   // Auth Modal Elements
   const authModal = document.getElementById('auth-modal');
   const authModalInner = document.getElementById('auth-modal-inner');
@@ -226,9 +233,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
+      // Privacy Policy Modal Listeners
+      if (openPrivacyBtn) openPrivacyBtn.addEventListener('click', openPrivacyModal);
+      if (privacyModalClose) privacyModalClose.addEventListener('click', closePrivacyModal);
+      if (privacyModalOkBtn) privacyModalOkBtn.addEventListener('click', closePrivacyModal);
+      if (privacyModal) {
+        privacyModal.addEventListener('click', (e) => {
+          if (e.target === privacyModal) closePrivacyModal();
+        });
+      }
+
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
           if (!studentModal.classList.contains('hidden')) closeStudentModal();
+          if (privacyModal && !privacyModal.classList.contains('hidden')) closePrivacyModal();
           if (authModal && !authModal.classList.contains('hidden')) closeAuthModal();
         }
       });
@@ -758,6 +776,34 @@ document.addEventListener('DOMContentLoaded', () => {
     studentModalInner.classList.remove('scale-100', 'translate-y-0');
     setTimeout(() => {
       studentModal.classList.add('hidden');
+    }, 250);
+    document.body.style.overflow = '';
+  }
+
+  function openPrivacyModal() {
+    if (!privacyModal) return;
+    privacyModal.classList.remove('hidden');
+    setTimeout(() => {
+      privacyModal.classList.add('opacity-100');
+      privacyModal.classList.remove('opacity-0', 'pointer-events-none');
+      if (privacyModalInner) {
+        privacyModalInner.classList.remove('scale-95');
+        privacyModalInner.classList.add('scale-100');
+      }
+    }, 10);
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closePrivacyModal() {
+    if (!privacyModal) return;
+    privacyModal.classList.remove('opacity-100');
+    privacyModal.classList.add('opacity-0', 'pointer-events-none');
+    if (privacyModalInner) {
+      privacyModalInner.classList.add('scale-95');
+      privacyModalInner.classList.remove('scale-100');
+    }
+    setTimeout(() => {
+      privacyModal.classList.add('hidden');
     }, 250);
     document.body.style.overflow = '';
   }

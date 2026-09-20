@@ -338,6 +338,26 @@
       </div>
     </main>
 
+    <!-- Footer Section with Defensive Privacy Policy & Disclaimers -->
+    <footer class="mx-auto max-w-5xl px-4 pt-6 pb-24 sm:pb-12 text-center text-xs text-slate-500 border-t border-slate-200/70 mt-6">
+      <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mb-3 font-semibold text-slate-600">
+        <button id="open-privacy-btn" class="hover:text-slate-950 transition-colors cursor-pointer underline underline-offset-4 decoration-slate-300">
+          Privacy Policy & Disclaimer
+        </button>
+        <span>•</span>
+        <a href="https://rgc.eshiksaems.com/" target="_blank" rel="noopener noreferrer" class="hover:text-slate-950 transition-colors">
+          Source: rgc.eshiksaems.com ↗
+        </a>
+        <span>•</span>
+        <a href="https://hscstack.site/support" target="_blank" rel="noopener noreferrer" class="hover:text-slate-950 transition-colors">
+          Opt-Out / Removal
+        </a>
+      </div>
+      <p class="text-[11px] text-slate-400 max-w-xl mx-auto leading-relaxed">
+        All records indexed herein are compiled from publicly accessible records on Rangpur Govt College's public portal (<a href="https://rgc.eshiksaems.com/" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-600">rgc.eshiksaems.com</a>) which can be retrieved manually. Independent non-commercial student directory.
+      </p>
+    </footer>
+
     <!-- Student Detail Modal -->
     <div
       id="student-modal"
@@ -388,6 +408,79 @@
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
             <span>Copy Roll</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div
+      id="privacy-modal"
+      class="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-slate-900/60 backdrop-blur-xs opacity-0 pointer-events-none transition-opacity duration-300 hidden"
+    >
+      <div
+        id="privacy-modal-inner"
+        class="bg-white rounded-3xl p-5 sm:p-7 max-w-lg w-full max-h-[88vh] overflow-y-auto shadow-2xl scale-95 transition-transform duration-300 relative border border-slate-100 text-left overscroll-contain"
+      >
+        <button
+          id="privacy-modal-close"
+          class="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+          aria-label="Close Privacy Policy"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
+        <h3 class="text-xl font-black text-slate-900 mb-1">
+          Privacy Policy & Legal Disclaimer
+        </h3>
+        <p class="text-xs text-slate-400 mb-4">Last Updated: September 2026</p>
+
+        <div class="space-y-4 text-xs sm:text-sm text-slate-600 leading-relaxed">
+          <div>
+            <h4 class="font-bold text-slate-900 mb-1">1. Public Source & Manual Availability</h4>
+            <p>
+              The student directory information (names, roll numbers, sessions, and profile pictures) presented on this website is compiled exclusively from publicly accessible records on Rangpur Govt College's web portal (<a href="https://rgc.eshiksaems.com/" target="_blank" rel="noopener noreferrer" class="text-indigo-600 font-semibold underline">https://rgc.eshiksaems.com/</a>). Any user with a standard browser can access and manually retrieve these exact same public records.
+            </p>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-slate-900 mb-1">2. Non-Commercial & Educational Purpose</h4>
+            <p>
+              This service is an independent community directory provided solely for educational indexation, peer discovery, and student convenience under HSCStack. It does not sell student data, charge access fees, or display commercial third-party advertisements.
+            </p>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-slate-900 mb-1">3. No Sensitive Personal Information (PII)</h4>
+            <p>
+              We do not collect, process, or store sensitive personal data such as phone numbers, personal email addresses, home addresses, dates of birth, National Identification Numbers (NID/Birth Certificates), or examination mark sheets.
+            </p>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-slate-900 mb-1">4. Content Removal & Privacy Opt-Out</h4>
+            <p>
+              We respect individual privacy rights. If you are a registered student or legal guardian and prefer not to have your public directory listing indexed on this platform, you may request removal. Submit your Roll Number through our <a href="https://hscstack.site/support" target="_blank" rel="noopener noreferrer" class="text-indigo-600 font-semibold underline">Support Center</a>, and your listing will be permanently delisted within 24–48 hours.
+            </p>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-slate-900 mb-1">5. Non-Affiliation Disclaimer</h4>
+            <p>
+              This platform is an independent student community initiative powered by HSCStack. It is not affiliated with, authorized, maintained, or endorsed by Rangpur Govt College or eShiksa EMS.
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-slate-100 flex justify-end">
+          <button
+            id="privacy-modal-ok-btn"
+            class="px-5 py-2.5 bg-slate-900 text-white font-bold text-xs rounded-xl shadow-xs hover:bg-slate-800 transition-all cursor-pointer"
+          >
+            Understood
           </button>
         </div>
       </div>
