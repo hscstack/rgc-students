@@ -39,13 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const authModalClose = document.getElementById('auth-modal-close');
   const authLoginBtn = document.getElementById('auth-login-btn');
 
-  // Mobile Drawer Elements
-  const mobileDrawerToggle = document.getElementById('mobile-drawer-toggle');
-  const mobileDrawer = document.getElementById('mobile-drawer');
-  const mobileDrawerBackdrop = document.getElementById('mobile-drawer-backdrop');
-  const mobileDrawerPanel = document.getElementById('mobile-drawer-panel');
-  const mobileDrawerClose = document.getElementById('mobile-drawer-close');
-
   // Toast
   const toast = document.getElementById('toast');
   const toastText = document.getElementById('toast-text');
@@ -225,38 +218,18 @@ document.addEventListener('DOMContentLoaded', () => {
           if (e.target === authModal) closeAuthModal();
         });
       }
-      if (authLoginBtn) {
-        authLoginBtn.addEventListener('click', () => {
-          window.location.href = 'https://hscstack.site/login?redirect=' + encodeURIComponent(window.location.href);
+      if (modalCopyBtn) {
+        modalCopyBtn.addEventListener('click', () => {
+          if (selectedStudent && selectedStudent.Roll) {
+            copyToClipboard(selectedStudent.Roll);
+          }
         });
       }
 
-      modalCopyBtn.addEventListener('click', () => {
-        if (selectedStudent && selectedStudent.Roll) {
-          copyToClipboard(selectedStudent.Roll);
-        }
-      });
-
-      // Mobile Drawer Listeners
-      if (mobileDrawerToggle) mobileDrawerToggle.addEventListener('click', openMobileDrawer);
-      if (mobileDrawerClose) mobileDrawerClose.addEventListener('click', closeMobileDrawer);
-      if (mobileDrawerBackdrop) mobileDrawerBackdrop.addEventListener('click', closeMobileDrawer);
-
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-          if (mobileDrawer && !mobileDrawer.classList.contains('hidden')) closeMobileDrawer();
           if (!studentModal.classList.contains('hidden')) closeStudentModal();
           if (authModal && !authModal.classList.contains('hidden')) closeAuthModal();
-        } else if (e.key === 'ArrowLeft') {
-          if (!studentModal.classList.contains('hidden') && selectedStudent) {
-            const curIdx = rawData.findIndex(s => s.Roll === selectedStudent.Roll);
-            if (curIdx > 0) openStudentModal(rawData[curIdx - 1]);
-          }
-        } else if (e.key === 'ArrowRight') {
-          if (!studentModal.classList.contains('hidden') && selectedStudent) {
-            const curIdx = rawData.findIndex(s => s.Roll === selectedStudent.Roll);
-            if (curIdx >= 0 && curIdx < rawData.length - 1) openStudentModal(rawData[curIdx + 1]);
-          }
         }
       });
 
@@ -811,30 +784,6 @@ document.addEventListener('DOMContentLoaded', () => {
       authModal.classList.add('hidden');
     }, 250);
     document.body.style.overflow = '';
-  }
-
-  function openMobileDrawer() {
-    if (!mobileDrawer) return;
-    mobileDrawer.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-    setTimeout(() => {
-      if (mobileDrawerBackdrop) mobileDrawerBackdrop.classList.remove('opacity-0');
-      if (mobileDrawerBackdrop) mobileDrawerBackdrop.classList.add('opacity-100');
-      if (mobileDrawerPanel) mobileDrawerPanel.classList.remove('-translate-x-full');
-      if (mobileDrawerPanel) mobileDrawerPanel.classList.add('translate-x-0');
-    }, 10);
-  }
-
-  function closeMobileDrawer() {
-    if (!mobileDrawer) return;
-    if (mobileDrawerBackdrop) mobileDrawerBackdrop.classList.remove('opacity-100');
-    if (mobileDrawerBackdrop) mobileDrawerBackdrop.classList.add('opacity-0');
-    if (mobileDrawerPanel) mobileDrawerPanel.classList.remove('translate-x-0');
-    if (mobileDrawerPanel) mobileDrawerPanel.classList.add('-translate-x-full');
-    document.body.style.overflow = '';
-    setTimeout(() => {
-      mobileDrawer.classList.add('hidden');
-    }, 250);
   }
 
   function showToast(msg) {
