@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // DOM Elements
+  // Search Elements
+  const searchForm = document.getElementById('search-form');
   const searchInput = document.getElementById('search-input');
   const searchClearBtn = document.getElementById('search-clear-btn');
   const sortSelect = document.getElementById('sort-select');
@@ -82,6 +83,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let itemsPerPage = 25;
   let selectedStudent = null;
 
+  // Search UI Mode State: 'all' | 'multi_select' | 'sequence_context'
+  let currentViewMode = 'all';
+  let lastSearchQuery = '';
+  let multiMatchList = [];
+  let focusedTargetRoll = null;
+
   // Initialize
   init();
 
@@ -114,17 +121,38 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      applyFilters();
+      resetToAllStudents();
 
-      // Event Listeners
+      // Event Listeners for Search
+      if (searchForm) {
+        searchForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          if (isLoggedIn === false) {
+            openAuthModal();
+            return;
+          }
+          executeSearch();
+        });
+      }
+
       searchInput.addEventListener('click', handleSearchFocusOrClick);
       searchInput.addEventListener('focus', handleSearchFocusOrClick);
-      searchInput.addEventListener('input', handleSearchInput);
+      searchInput.addEventListener('input', () => {
+        const val = searchInput.value.trim();
+        if (val.length > 0) {
+          searchClearBtn.classList.remove('hidden');
+          searchClearBtn.classList.add('flex');
+        } else {
+          searchClearBtn.classList.add('hidden');
+          searchClearBtn.classList.remove('flex');
+        }
+      });
+
       searchClearBtn.addEventListener('click', () => {
         searchInput.value = '';
         searchClearBtn.classList.add('hidden');
         searchClearBtn.classList.remove('flex');
-        applyFilters();
+        resetToAllStudents();
       });
 
       // Sort select auth check & handlers
@@ -144,7 +172,10 @@ document.addEventListener('DOMContentLoaded', () => {
       sortSelect.addEventListener('focus', (e) => guardSelectAuth(e, sortSelect, 'roll-asc'));
       sortSelect.addEventListener('change', (e) => {
         if (guardSelectAuth(e, sortSelect, 'roll-asc')) return;
-        applyFilters();
+        if (currentViewMode === 'all') {
+          applySorting();
+          renderLeaderboard();
+        }
       });
 
       // Page size select auth check & handlers
@@ -273,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return [];
   }
 
-  // Auth System (Matches HSCStack / Dinajpur standard)
+  // Auth System
   async function checkUserAuth() {
     if (isLoggedIn === true) {
       return true;
@@ -391,147 +422,203 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function handleSearchInput() {
-    if (isLoggedIn === false) {
-      searchInput.value = '';
-      openAuthModal();
-      return;
+  function resetToAllStudents() {
+    currentViewMode = 'all';
+    lastSearchQuery = '';
+    multiMatchList = [];
+    focusedTargetRoll = null;
+
+    if (searchContextBanner) {
+      searchContextBanner.classList.add('hidden');
+      searchContextBanner.classList.remove('flex');
+      searchContextBanner.innerHTML = '';
     }
-    const val = searchInput.value.trim();
-    if (val.length > 0) {
-      searchClearBtn.classList.remove('hidden');
-      searchClearBtn.classList.add('flex');
-    } else {
-      searchClearBtn.classList.add('hidden');
-      searchClearBtn.classList.remove('flex');
-    }
-    applyFilters();
+
+    filteredData = rawData.map(s => ({
+      ...s,
+      isDirectMatch: false,
+      matchContext: null
+    }));
+
+    applySorting();
+
+    visibleCount.textContent = filteredData.length;
+    currentPage = 1;
+    renderLeaderboard();
   }
 
-  function applyFilters() {
-    const q = searchInput.value.trim().toLowerCase();
+  function applySorting() {
     const sort = sortSelect.value;
+    filteredData.sort((a, b) => {
+      if (sort === 'roll-asc') return (a.Roll || '').localeCompare(b.Roll || '');
+      if (sort === 'roll-desc') return (b.Roll || '').localeCompare(a.Roll || '');
+      if (sort === 'name-asc') return (a.Name || '').localeCompare(b.Name || '');
+      if (sort === 'name-desc') return (b.Name || '').localeCompare(a.Name || '');
+      return 0;
+    });
+  }
+
+  function executeSearch() {
+    const q = searchInput.value.trim().toLowerCase();
+    lastSearchQuery = q;
 
     if (!q) {
+      resetToAllStudents();
+      return;
+    }
+
+    // Find all matches
+    const matches = rawData.filter(s => s.searchIndex.includes(q));
+
+    if (matches.length === 0) {
+      currentViewMode = 'empty';
+      filteredData = [];
+      visibleCount.textContent = 0;
       if (searchContextBanner) {
         searchContextBanner.classList.add('hidden');
         searchContextBanner.classList.remove('flex');
       }
-
-      filteredData = rawData.map(s => ({
-        ...s,
-        isDirectMatch: false,
-        matchContext: null
-      }));
-
-      filteredData.sort((a, b) => {
-        if (sort === 'roll-asc') return (a.Roll || '').localeCompare(b.Roll || '');
-        if (sort === 'roll-desc') return (b.Roll || '').localeCompare(a.Roll || '');
-        if (sort === 'name-asc') return (a.Name || '').localeCompare(b.Name || '');
-        if (sort === 'name-desc') return (b.Name || '').localeCompare(a.Name || '');
-        return 0;
-      });
-    } else {
-      // Find all indices in master roll order (rawData) that match
-      const matchIndices = [];
-      rawData.forEach((item, idx) => {
-        if (item.searchIndex.includes(q)) {
-          matchIndices.push(idx);
-        }
-      });
-
-      if (matchIndices.length === 0) {
-        if (searchContextBanner) {
-          searchContextBanner.classList.add('hidden');
-          searchContextBanner.classList.remove('flex');
-        }
-        filteredData = [];
-      } else {
-        // Build surrounding windows (3 in front, 3 after for each match)
-        const WINDOW_SIZE = 3;
-        const includedIndices = new Set();
-
-        matchIndices.forEach(matchIdx => {
-          const start = Math.max(0, matchIdx - WINDOW_SIZE);
-          const end = Math.min(rawData.length - 1, matchIdx + WINDOW_SIZE);
-          for (let i = start; i <= end; i++) {
-            includedIndices.add(i);
-          }
-        });
-
-        const sortedIndices = Array.from(includedIndices).sort((a, b) => a - b);
-
-        filteredData = sortedIndices.map(idx => {
-          const item = rawData[idx];
-          const isDirectMatch = matchIndices.includes(idx);
-          let matchContext = null;
-
-          if (!isDirectMatch) {
-            // Find closest match index
-            let minDiff = Infinity;
-            let closestMatchIdx = matchIndices[0];
-            matchIndices.forEach(mIdx => {
-              const diff = Math.abs(idx - mIdx);
-              if (diff < minDiff) {
-                minDiff = diff;
-                closestMatchIdx = mIdx;
-              }
-            });
-
-            if (idx < closestMatchIdx) {
-              matchContext = 'in_front';
-            } else {
-              matchContext = 'after';
-            }
-          }
-
-          return {
-            ...item,
-            isDirectMatch,
-            matchContext
-          };
-        });
-
-        // If user explicitly chose a sort other than roll-asc, respect it or keep natural sequence
-        if (sort !== 'roll-asc') {
-          filteredData.sort((a, b) => {
-            if (sort === 'roll-desc') return (b.Roll || '').localeCompare(a.Roll || '');
-            if (sort === 'name-asc') return (a.Name || '').localeCompare(b.Name || '');
-            if (sort === 'name-desc') return (b.Name || '').localeCompare(a.Name || '');
-            return 0;
-          });
-        }
-
-        if (searchContextBanner) {
-          searchContextBanner.classList.remove('hidden');
-          searchContextBanner.classList.add('flex');
-        }
-      }
+      showState('empty');
+      return;
     }
+
+    if (matches.length === 1) {
+      // Exactly one match: display surrounding roll sequence directly
+      showStudentSequence(matches[0], false);
+    } else {
+      // Multiple matches: show picker
+      showMultiMatchPicker(matches, q);
+    }
+  }
+
+  function showStudentSequence(targetStudent, hasParentMultiList) {
+    currentViewMode = 'sequence_context';
+    focusedTargetRoll = targetStudent.Roll;
+
+    const targetIdx = rawData.findIndex(s => s.Roll === targetStudent.Roll);
+    const WINDOW_SIZE = 3;
+    const startIdx = Math.max(0, targetIdx - WINDOW_SIZE);
+    const endIdx = Math.min(rawData.length - 1, targetIdx + WINDOW_SIZE);
+
+    filteredData = rawData.slice(startIdx, endIdx + 1).map((item) => {
+      const isDirectMatch = item.Roll === targetStudent.Roll;
+      let matchContext = null;
+      if (!isDirectMatch) {
+        matchContext = item.indexNumber < targetStudent.indexNumber ? 'in_front' : 'after';
+      }
+      return {
+        ...item,
+        isDirectMatch,
+        matchContext
+      };
+    });
 
     visibleCount.textContent = filteredData.length;
     currentPage = 1;
 
-    if (filteredData.length === 0) {
-      showState('empty');
-    } else {
-      renderLeaderboard();
+    // Render Clean Context Banner
+    if (searchContextBanner) {
+      searchContextBanner.classList.remove('hidden');
+      searchContextBanner.classList.add('flex');
+      searchContextBanner.className = 'flex items-center justify-between gap-3 px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 shadow-xs mb-1';
+      
+      const backButtonHtml = hasParentMultiList
+        ? `<button id="btn-back-to-matches" class="inline-flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-slate-950 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors shrink-0 cursor-pointer">
+             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+             <span>Back to Matches</span>
+           </button>`
+        : `<button id="btn-reset-search-banner" class="inline-flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-slate-950 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors shrink-0 cursor-pointer">
+             <span>View All (364)</span>
+           </button>`;
+
+      searchContextBanner.innerHTML = `
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="font-mono font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">${escapeHTML(targetStudent.Roll)}</span>
+          <span class="truncate">Roll sequence (<span class="text-slate-500">showing classmates in front & after</span>)</span>
+        </div>
+        ${backButtonHtml}
+      `;
+
+      const btnBackMatches = document.getElementById('btn-back-to-matches');
+      if (btnBackMatches) {
+        btnBackMatches.addEventListener('click', () => {
+          showMultiMatchPicker(multiMatchList, lastSearchQuery);
+        });
+      }
+
+      const btnResetBanner = document.getElementById('btn-reset-search-banner');
+      if (btnResetBanner) {
+        btnResetBanner.addEventListener('click', () => {
+          searchInput.value = '';
+          searchClearBtn.classList.add('hidden');
+          searchClearBtn.classList.remove('flex');
+          resetToAllStudents();
+        });
+      }
     }
+
+    renderLeaderboard();
+  }
+
+  function showMultiMatchPicker(matches, query) {
+    currentViewMode = 'multi_select';
+    multiMatchList = matches;
+
+    filteredData = matches.map(s => ({
+      ...s,
+      isDirectMatch: false,
+      matchContext: null
+    }));
+
+    visibleCount.textContent = filteredData.length;
+    currentPage = 1;
+
+    // Render Multi Match Banner
+    if (searchContextBanner) {
+      searchContextBanner.classList.remove('hidden');
+      searchContextBanner.classList.add('flex');
+      searchContextBanner.className = 'flex items-center justify-between gap-3 px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 shadow-xs mb-1';
+      searchContextBanner.innerHTML = `
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="font-bold text-slate-900">${matches.length} students found.</span>
+          <span class="text-slate-500 truncate">Select a student to view their roll sequence:</span>
+        </div>
+        <button id="btn-reset-multi-banner" class="text-xs font-bold text-slate-700 hover:text-slate-950 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors shrink-0 cursor-pointer">
+          View All (364)
+        </button>
+      `;
+
+      const btnResetBanner = document.getElementById('btn-reset-multi-banner');
+      if (btnResetBanner) {
+        btnResetBanner.addEventListener('click', () => {
+          searchInput.value = '';
+          searchClearBtn.classList.add('hidden');
+          searchClearBtn.classList.remove('flex');
+          resetToAllStudents();
+        });
+      }
+    }
+
+    renderLeaderboard();
   }
 
   function renderLeaderboard() {
     showState('leaderboard');
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+    const isPickerMode = currentViewMode === 'multi_select';
+    const isSequenceMode = currentViewMode === 'sequence_context';
+
+    const totalPages = isSequenceMode ? 1 : Math.ceil(filteredData.length / itemsPerPage);
     if (currentPage > totalPages && totalPages > 0) {
       currentPage = totalPages;
     }
 
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
+    const startIndex = isSequenceMode ? 0 : (currentPage - 1) * itemsPerPage;
+    const endIndex = isSequenceMode ? filteredData.length : Math.min(startIndex + itemsPerPage, filteredData.length);
     const pageData = filteredData.slice(startIndex, endIndex);
 
     leaderboardBody.innerHTML = '';
-    const q = searchInput.value.trim();
+    const q = lastSearchQuery;
 
     pageData.forEach(student => {
       const row = document.createElement('div');
@@ -542,33 +629,59 @@ document.addEventListener('DOMContentLoaded', () => {
       const isDirectMatch = student.isDirectMatch;
       const matchContext = student.matchContext;
 
-      // Base style
-      let cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-white border border-slate-200 rounded-xl p-4 cursor-pointer hover:bg-slate-50 hover:border-indigo-200 transition-all shadow-sm';
+      // Clean, un-slop styling
+      let cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-white border border-slate-200 rounded-xl p-3.5 sm:p-4 cursor-pointer hover:border-slate-300 hover:bg-slate-50/70 transition-all shadow-2xs';
       let badgeHtml = '';
 
-      if (q && isDirectMatch) {
-        cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-indigo-50/50 border-2 border-indigo-500/50 ring-2 ring-indigo-500/20 rounded-xl p-4 cursor-pointer hover:bg-indigo-50/80 transition-all shadow-md';
-        badgeHtml = `
-          <span class="inline-flex items-center gap-1 rounded-full bg-indigo-600 text-white text-[10px] font-black px-2.5 py-0.5 shadow-2xs">
-            <span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse"></span>
-            Matched
-          </span>
-        `;
-      } else if (q && matchContext === 'in_front') {
-        cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-slate-50/70 border border-slate-200/90 rounded-xl p-4 cursor-pointer hover:bg-white hover:border-slate-300 transition-all shadow-2xs opacity-90 hover:opacity-100';
-        badgeHtml = `
-          <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[10px] font-bold px-2 py-0.5">
-            In Front
-          </span>
-        `;
-      } else if (q && matchContext === 'after') {
-        cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-slate-50/70 border border-slate-200/90 rounded-xl p-4 cursor-pointer hover:bg-white hover:border-slate-300 transition-all shadow-2xs opacity-90 hover:opacity-100';
-        badgeHtml = `
-          <span class="inline-flex items-center gap-1 rounded-full bg-sky-50 border border-sky-200 text-sky-800 text-[10px] font-bold px-2 py-0.5">
-            After
-          </span>
-        `;
+      if (isSequenceMode) {
+        if (isDirectMatch) {
+          cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-slate-900 border-2 border-slate-900 rounded-xl p-3.5 sm:p-4 cursor-pointer text-white shadow-md';
+          badgeHtml = `
+            <span class="inline-flex items-center gap-1 rounded-md bg-white/20 text-white text-[10px] font-bold px-2 py-0.5">
+              Target Roll
+            </span>
+          `;
+        } else if (matchContext === 'in_front') {
+          cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-white border border-slate-200/90 rounded-xl p-3 sm:p-3.5 cursor-pointer hover:bg-slate-50 transition-all shadow-2xs opacity-90 hover:opacity-100';
+          badgeHtml = `
+            <span class="inline-flex items-center rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5">
+              In Front
+            </span>
+          `;
+        } else if (matchContext === 'after') {
+          cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-white border border-slate-200/90 rounded-xl p-3 sm:p-3.5 cursor-pointer hover:bg-slate-50 transition-all shadow-2xs opacity-90 hover:opacity-100';
+          badgeHtml = `
+            <span class="inline-flex items-center rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5">
+              After
+            </span>
+          `;
+        }
+      } else if (isPickerMode) {
+        cardStyle = 'group flex flex-col sm:flex-row sm:items-center justify-between bg-white border border-slate-200 rounded-xl p-3.5 sm:p-4 cursor-pointer hover:border-slate-400 hover:bg-slate-50 transition-all shadow-2xs';
       }
+
+      const rollBadgeClass = isSequenceMode && isDirectMatch
+        ? 'font-mono text-sm font-bold text-white bg-white/10 px-3 py-1.5 rounded-xl border border-white/20'
+        : 'font-mono text-sm font-bold text-slate-800 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200';
+
+      const rollBadgeMobileClass = isSequenceMode && isDirectMatch
+        ? 'font-mono text-xs font-bold text-white bg-white/10 px-2 py-0.5 rounded-md border border-white/20'
+        : 'font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200';
+
+      const nameClass = isSequenceMode && isDirectMatch
+        ? 'font-bold text-white text-base leading-snug truncate'
+        : 'font-bold text-slate-800 text-base leading-snug truncate group-hover:text-slate-950 transition-colors';
+
+      const actionButtonHtml = isPickerMode
+        ? `<div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-bold group-hover:bg-slate-800 transition-colors shrink-0">
+             <span>Select</span>
+             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+           </div>`
+        : `<div class="w-8 flex justify-end shrink-0 pl-2">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ${isSequenceMode && isDirectMatch ? 'text-white/60' : 'text-slate-300 group-hover:text-slate-600'} transition-all" viewBox="0 0 20 20" fill="currentColor">
+               <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+             </svg>
+           </div>`;
 
       row.className = cardStyle;
 
@@ -576,24 +689,24 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Mobile View (visible block sm:hidden) -->
         <div class="flex sm:hidden items-center justify-between gap-3 w-full">
           <div class="flex items-center gap-3 min-w-0 flex-1">
-            <div class="relative w-12 h-12 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs">
-              <img src="${escapeHTML(student.Image_URL)}" alt="" referrerpolicy="no-referrer" class="w-full h-full object-cover" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' fill=\'%2394a3b8\' viewBox=\'0 0 24 24\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+            <div class="relative w-11 h-11 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs">
+              <img src="${escapeHTML(student.Image_URL)}" alt="" referrerpolicy="no-referrer" class="w-full h-full object-cover" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'48\\' height=\\'48\\' fill=\\'%2394a3b8\\' viewBox=\\'0 0 24 24\\'><path d=\\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\\'/></svg>'">
             </div>
             <div class="flex flex-col min-w-0 flex-1 gap-1">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="font-bold text-slate-800 text-base leading-snug truncate group-hover:text-indigo-600 transition-colors">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="${nameClass}">
                   ${highlightedName}
                 </span>
                 ${badgeHtml}
               </div>
               <div>
-                <span class="font-mono text-xs font-bold ${isDirectMatch ? 'text-indigo-900 bg-indigo-100 border-indigo-300' : 'text-indigo-700 bg-indigo-50 border-indigo-100'} px-2 py-0.5 rounded-md border">
+                <span class="${rollBadgeMobileClass}">
                   ${highlightedRoll}
                 </span>
               </div>
             </div>
           </div>
-          <div class="shrink-0 text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-0.5 transition-all">
+          <div class="shrink-0 ${isSequenceMode && isDirectMatch ? 'text-white' : 'text-slate-400'}">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
             </svg>
@@ -603,30 +716,33 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Desktop View (visible sm:flex hidden) -->
         <div class="hidden sm:flex w-full items-center">
           <div class="w-36 flex justify-center shrink-0">
-            <div class="font-mono text-sm font-bold ${isDirectMatch ? 'text-indigo-900 bg-indigo-100/90 border-indigo-300 ring-2 ring-indigo-500/20' : 'text-indigo-700 bg-indigo-50 border-indigo-100'} px-3 py-1.5 rounded-xl border transition-all">
+            <div class="${rollBadgeClass}">
               ${highlightedRoll}
             </div>
           </div>
           <div class="w-12 flex justify-center shrink-0 ml-1">
             <div class="w-10 h-10 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shadow-2xs">
-              <img src="${escapeHTML(student.Image_URL)}" alt="" referrerpolicy="no-referrer" class="w-full h-full object-cover" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\' fill=\'%2394a3b8\' viewBox=\'0 0 24 24\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+              <img src="${escapeHTML(student.Image_URL)}" alt="" referrerpolicy="no-referrer" class="w-full h-full object-cover" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'40\\' height=\\'40\\' fill=\\'%2394a3b8\\' viewBox=\\'0 0 24 24\\'><path d=\\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\\'/></svg>'">
             </div>
           </div>
           <div class="flex-1 px-4 min-w-0 flex items-center gap-3">
-            <div class="font-bold text-slate-800 text-base truncate group-hover:text-indigo-600 transition-colors">
+            <div class="${nameClass}">
               ${highlightedName}
             </div>
             ${badgeHtml}
           </div>
-          <div class="w-8 flex justify-end shrink-0 pl-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-300 transition-all duration-200 group-hover:translate-x-1 group-hover:text-indigo-500" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-            </svg>
-          </div>
+          ${actionButtonHtml}
         </div>
       `;
 
-      row.addEventListener('click', () => openStudentModal(student));
+      row.addEventListener('click', () => {
+        if (isPickerMode) {
+          showStudentSequence(student, true);
+        } else {
+          openStudentModal(student);
+        }
+      });
+
       leaderboardBody.appendChild(row);
     });
 
