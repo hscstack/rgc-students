@@ -171,6 +171,11 @@ document.addEventListener('DOMContentLoaded', () => {
       totalCount.textContent = rawData.length;
       if (statStudents) statStudents.textContent = rawData.length;
 
+      const allOption = pageSizeSelect ? pageSizeSelect.querySelector('option[value="all"]') : null;
+      if (allOption) {
+        allOption.textContent = `All (${rawData.length})`;
+      }
+
       if (rawData.length === 0) {
         showState('empty');
         return;
@@ -239,7 +244,8 @@ document.addEventListener('DOMContentLoaded', () => {
       pageSizeSelect.addEventListener('focus', (e) => guardSelectAuth(e, pageSizeSelect, '25'));
       pageSizeSelect.addEventListener('change', (e) => {
         if (guardSelectAuth(e, pageSizeSelect, '25')) return;
-        itemsPerPage = parseInt(e.target.value, 10);
+        const val = e.target.value;
+        itemsPerPage = val === 'all' ? (rawData.length || 1000) : (parseInt(val, 10) || 25);
         currentPage = 1;
         renderLeaderboard();
       });
@@ -508,7 +514,7 @@ document.addEventListener('DOMContentLoaded', () => {
       searchContextBanner.classList.add('flex');
       searchContextBanner.className = 'flex items-center justify-between gap-2 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs mb-2';
       
-      const backBtnText = hasParentMultiList ? '← Matches' : 'Show All (364)';
+      const backBtnText = hasParentMultiList ? '← Matches' : `Show All (${rawData.length})`;
 
       searchContextBanner.innerHTML = `
         <div class="flex items-center gap-2 min-w-0">
