@@ -477,10 +477,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const startIdx = Math.max(0, targetIdx - WINDOW_SIZE);
     const endIdx = Math.min(rawData.length - 1, targetIdx + WINDOW_SIZE);
 
-    filteredData = rawData.slice(startIdx, endIdx + 1).map((item) => ({
-      ...item,
-      isDirectMatch: item.Roll === targetStudent.Roll
-    }));
+    filteredData = rawData.slice(startIdx, endIdx + 1).map((item) => {
+      const isDirectMatch = item.Roll === targetStudent.Roll;
+      let matchContext = null;
+      if (!isDirectMatch) {
+        matchContext = item.indexNumber < targetStudent.indexNumber ? 'before' : 'after';
+      }
+      return {
+        ...item,
+        isDirectMatch,
+        matchContext
+      };
+    });
 
     visibleCount.textContent = filteredData.length;
     currentPage = 1;
@@ -496,7 +504,7 @@ document.addEventListener('DOMContentLoaded', () => {
       searchContextBanner.innerHTML = `
         <div class="flex items-center gap-2 min-w-0">
           <span class="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 shrink-0">${escapeHTML(targetStudent.Roll)}</span>
-          <span class="text-slate-600 truncate text-[11px] sm:text-xs">Classmates in roll order</span>
+          <span class="text-slate-600 truncate text-[11px] sm:text-xs">Classmates sequence</span>
         </div>
         <button id="btn-banner-action" class="text-[11px] sm:text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg transition-colors shrink-0 cursor-pointer touch-manipulation">
           ${backBtnText}
@@ -527,7 +535,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     filteredData = matches.map(s => ({
       ...s,
-      isDirectMatch: false
+      isDirectMatch: false,
+      matchContext: null
     }));
 
     visibleCount.textContent = filteredData.length;
@@ -587,18 +596,33 @@ document.addEventListener('DOMContentLoaded', () => {
       const highlightedRoll = highlight(student.Roll, q);
 
       const isDirectMatch = student.isDirectMatch;
+      const matchContext = student.matchContext;
 
       // Clean, elegant card styling
       let cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-white border border-slate-200 rounded-xl p-3 sm:p-3.5 cursor-pointer hover:border-slate-300 hover:bg-slate-50/70 transition-all shadow-2xs touch-manipulation active:scale-[0.99]';
       let badgeHtml = '';
 
-      if (isSequenceMode && isDirectMatch) {
-        cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-indigo-50/40 border border-indigo-200 ring-1 ring-indigo-500/20 rounded-xl p-3 sm:p-3.5 cursor-pointer hover:bg-indigo-50/60 transition-all shadow-xs touch-manipulation active:scale-[0.99]';
-        badgeHtml = `
-          <span class="inline-flex items-center gap-1 rounded-md bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 border border-indigo-200/60">
-            Searched
-          </span>
-        `;
+      if (isSequenceMode) {
+        if (isDirectMatch) {
+          cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-indigo-50/40 border border-indigo-200 ring-1 ring-indigo-500/20 rounded-xl p-3 sm:p-3.5 cursor-pointer hover:bg-indigo-50/60 transition-all shadow-xs touch-manipulation active:scale-[0.99]';
+          badgeHtml = `
+            <span class="inline-flex items-center gap-1 rounded-md bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 border border-indigo-200/60">
+              Searched
+            </span>
+          `;
+        } else if (matchContext === 'before') {
+          badgeHtml = `
+            <span class="inline-flex items-center rounded-md bg-slate-100 text-slate-500 text-[10px] font-medium px-2 py-0.5 border border-slate-200/60">
+              Before
+            </span>
+          `;
+        } else if (matchContext === 'after') {
+          badgeHtml = `
+            <span class="inline-flex items-center rounded-md bg-slate-100 text-slate-500 text-[10px] font-medium px-2 py-0.5 border border-slate-200/60">
+              After
+            </span>
+          `;
+        }
       }
 
       const rollBadgeClass = isSequenceMode && isDirectMatch
