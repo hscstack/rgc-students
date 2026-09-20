@@ -79,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Render initial profile state immediately (0ms delay)
   renderUserProfileWidget();
+  initStaticEventListeners();
 
   let rawData = [];
   let filteredData = [];
@@ -91,6 +92,57 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastSearchQuery = '';
   let multiMatchList = [];
   let focusedTargetRoll = null;
+
+  function initStaticEventListeners() {
+    if (authLoginBtn) {
+      authLoginBtn.href = 'https://hscstack.site/login?redirect=' + encodeURIComponent(window.location.href);
+      authLoginBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = 'https://hscstack.site/login?redirect=' + encodeURIComponent(window.location.href);
+      });
+    }
+    if (authModalClose) {
+      authModalClose.addEventListener('click', closeAuthModal);
+    }
+    if (authModal) {
+      authModal.addEventListener('click', (e) => {
+        if (e.target === authModal) closeAuthModal();
+      });
+    }
+
+    if (openPrivacyBtn) openPrivacyBtn.addEventListener('click', openPrivacyModal);
+    if (privacyModalClose) privacyModalClose.addEventListener('click', closePrivacyModal);
+    if (privacyModalOkBtn) privacyModalOkBtn.addEventListener('click', closePrivacyModal);
+    if (privacyModal) {
+      privacyModal.addEventListener('click', (e) => {
+        if (e.target === privacyModal) closePrivacyModal();
+      });
+    }
+
+    if (studentModalClose) {
+      studentModalClose.addEventListener('click', closeStudentModal);
+    }
+    if (studentModal) {
+      studentModal.addEventListener('click', (e) => {
+        if (e.target === studentModal) closeStudentModal();
+      });
+    }
+    if (modalCopyBtn) {
+      modalCopyBtn.addEventListener('click', () => {
+        if (selectedStudent && selectedStudent.Roll) {
+          copyToClipboard(selectedStudent.Roll);
+        }
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (studentModal && !studentModal.classList.contains('hidden')) closeStudentModal();
+        if (privacyModal && !privacyModal.classList.contains('hidden')) closePrivacyModal();
+        if (authModal && !authModal.classList.contains('hidden')) closeAuthModal();
+      }
+    });
+  }
 
   // Initialize
   init();
@@ -214,46 +266,6 @@ document.addEventListener('DOMContentLoaded', () => {
           currentPage++;
           renderLeaderboard();
           window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      });
-
-      // Student Modals
-      studentModalClose.addEventListener('click', closeStudentModal);
-      studentModal.addEventListener('click', (e) => {
-        if (e.target === studentModal) closeStudentModal();
-      });
-
-      if (authModalClose) {
-        authModalClose.addEventListener('click', closeAuthModal);
-      }
-      if (authModal) {
-        authModal.addEventListener('click', (e) => {
-          if (e.target === authModal) closeAuthModal();
-        });
-      }
-      if (modalCopyBtn) {
-        modalCopyBtn.addEventListener('click', () => {
-          if (selectedStudent && selectedStudent.Roll) {
-            copyToClipboard(selectedStudent.Roll);
-          }
-        });
-      }
-
-      // Privacy Policy Modal Listeners
-      if (openPrivacyBtn) openPrivacyBtn.addEventListener('click', openPrivacyModal);
-      if (privacyModalClose) privacyModalClose.addEventListener('click', closePrivacyModal);
-      if (privacyModalOkBtn) privacyModalOkBtn.addEventListener('click', closePrivacyModal);
-      if (privacyModal) {
-        privacyModal.addEventListener('click', (e) => {
-          if (e.target === privacyModal) closePrivacyModal();
-        });
-      }
-
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          if (!studentModal.classList.contains('hidden')) closeStudentModal();
-          if (privacyModal && !privacyModal.classList.contains('hidden')) closePrivacyModal();
-          if (authModal && !authModal.classList.contains('hidden')) closeAuthModal();
         }
       });
 
