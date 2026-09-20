@@ -27,7 +27,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalName = document.getElementById('modal-name');
   const modalRollBadge = document.getElementById('modal-roll-badge');
   const modalRoll = document.getElementById('modal-roll');
+  const modalDept = document.getElementById('modal-dept');
   const modalSession = document.getElementById('modal-session');
+  const modalSscSection = document.getElementById('modal-ssc-section');
+  const modalSscMarks = document.getElementById('modal-ssc-marks');
+  const modalSscGpa = document.getElementById('modal-ssc-gpa');
+  const modalSchool = document.getElementById('modal-school');
+  const modalSscUnlinked = document.getElementById('modal-ssc-unlinked');
   const modalCopyBtn = document.getElementById('modal-copy-btn');
 
   // Search Context Banner
@@ -757,7 +763,31 @@ document.addEventListener('DOMContentLoaded', () => {
     modalName.textContent = student.Name || 'Student';
     modalRollBadge.textContent = student.Roll || '-';
     modalRoll.textContent = student.Roll || '-';
+    if (modalDept) {
+      modalDept.textContent = student.Department || 'HSC - Science';
+    }
     modalSession.textContent = student.Session || '2026-2027';
+
+    // Populate SSC Data
+    const hasSscData = student.SSC_Marks !== null && student.SSC_Marks !== undefined && student.SSC_Marks !== '';
+    if (hasSscData) {
+      if (modalSscSection) modalSscSection.classList.remove('hidden');
+      if (modalSscUnlinked) modalSscUnlinked.classList.add('hidden');
+      
+      if (modalSscMarks) {
+        modalSscMarks.textContent = student.SSC_Marks;
+      }
+      if (modalSscGpa) {
+        const gpaVal = typeof student.SSC_GPA === 'number' ? student.SSC_GPA.toFixed(2) : (student.SSC_GPA || '5.00');
+        modalSscGpa.textContent = `GPA ${gpaVal}`;
+      }
+      if (modalSchool) {
+        modalSchool.textContent = student.Previous_School || 'Dinajpur Board School';
+      }
+    } else {
+      if (modalSscSection) modalSscSection.classList.add('hidden');
+      if (modalSscUnlinked) modalSscUnlinked.classList.remove('hidden');
+    }
 
     studentModal.classList.remove('hidden');
     setTimeout(() => {

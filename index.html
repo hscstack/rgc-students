@@ -392,9 +392,38 @@
             <span class="text-slate-500 font-semibold">Roll Number</span>
             <span id="modal-roll" class="font-bold text-indigo-700 font-mono text-sm sm:text-base">1262701001</span>
           </div>
-          <div class="flex justify-between items-center">
+          <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
+            <span class="text-slate-500 font-semibold">Department</span>
+            <span id="modal-dept" class="font-bold text-slate-800">HSC - Science</span>
+          </div>
+          <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
             <span class="text-slate-500 font-semibold">Academic Session</span>
             <span id="modal-session" class="font-bold text-slate-800">2026-2027</span>
+          </div>
+          
+          <!-- SSC Results & Previous School Section -->
+          <div id="modal-ssc-section" class="space-y-2.5">
+            <div id="modal-ssc-marks-row" class="flex justify-between items-start pb-2 border-b border-slate-200/60">
+              <div>
+                <span class="text-slate-500 font-semibold block">SSC Total Marks</span>
+                <span class="text-[10px] text-amber-700 font-bold leading-tight block">(Before Board Challenge)</span>
+              </div>
+              <div class="text-right">
+                <span id="modal-ssc-marks" class="font-bold text-slate-900 font-mono text-sm sm:text-base">1029</span>
+                <span id="modal-ssc-gpa" class="text-[11px] font-bold text-emerald-600 block">GPA 5.00</span>
+              </div>
+            </div>
+            <div id="modal-ssc-school-row" class="flex justify-between items-start gap-3">
+              <span class="text-slate-500 font-semibold shrink-0">Previous School</span>
+              <span id="modal-school" class="font-bold text-slate-800 text-right leading-snug text-xs sm:text-sm">Police Lines School and College, Rangpur</span>
+            </div>
+          </div>
+
+          <div id="modal-ssc-unlinked" class="hidden">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-medium">SSC Information</span>
+              <span class="text-slate-400 font-medium text-[11px] italic">Other Board / Unlinked</span>
+            </div>
           </div>
         </div>
 
