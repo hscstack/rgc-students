@@ -93,12 +93,12 @@ def enrich_student_record(student: dict, exact_map: dict, token_map: dict, schoo
     r_tok = clean_name_tokens(r_name)
     
     candidate = None
-    if r_norm in exact_map and exact_map[r_norm]:
+    if r_norm in exact_map and len(exact_map[r_norm]) == 1:
+        # Strictly single unique exact name match
         candidate = exact_map[r_norm][0]
-    elif r_tok in token_map and token_map[r_tok]:
-        # Only use token map if single unique match to avoid false collisions
-        if len(token_map[r_tok]) == 1:
-            candidate = token_map[r_tok][0]
+    elif r_tok in token_map and len(token_map[r_tok]) == 1:
+        # Strictly single unique tokenized match
+        candidate = token_map[r_tok][0]
             
     if candidate:
         # candidate: [id, name, school_idx, upz_idx, dist_idx, grp_idx, gpa, mark, globalRank, is_passed, roll]
