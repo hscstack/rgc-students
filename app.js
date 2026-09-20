@@ -212,12 +212,14 @@ document.addEventListener('DOMContentLoaded', () => {
           ...item,
           indexNumber,
           section,
-          searchIndex: `${item.Roll || ''} ${item.Name || ''} section ${section} sec ${section}`.toLowerCase()
+          searchIndex: `${item.Roll || ''} ${item.Name || ''} ${item.Previous_School || ''} section ${section} sec ${section}`.toLowerCase()
         };
       });
 
       totalCount.textContent = rawData.length;
       if (statStudents) statStudents.textContent = rawData.length;
+
+      renderTopFeederSchools(rawData);
 
       const allOption = pageSizeSelect ? pageSizeSelect.querySelector('option[value="all"]') : null;
       if (allOption) {
@@ -1050,6 +1052,83 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (state === 'leaderboard') {
       leaderboardContainer.classList.remove('hidden');
     }
+  }
+
+  function renderTopFeederSchools(data) {
+    const container = document.getElementById('top-schools-list');
+    if (!container) return;
+
+    const counts = {};
+    data.forEach(student => {
+      const school = (student.Previous_School || '').trim();
+      if (school) {
+        counts[school] = (counts[school] || 0) + 1;
+      }
+    });
+
+    const sortedSchools = Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+
+    if (sortedSchools.length === 0) {
+      const section = document.getElementById('top-schools-section');
+      if (section) section.classList.add('hidden');
+      return;
+    }
+
+    const rankConfig = [
+      {
+        rank: 1,
+        medal: '🥇',
+        badgeBg: 'bg-amber-100 text-amber-900 border-amber-300/80',
+        cardBg: 'bg-gradient-to-br from-amber-50/90 via-white to-amber-50/30 border-amber-200/90',
+        countBg: 'bg-amber-600 text-white'
+      },
+      {
+        rank: 2,
+        medal: '🥈',
+        badgeBg: 'bg-slate-100 text-slate-800 border-slate-300/80',
+        cardBg: 'bg-gradient-to-br from-slate-50/90 via-white to-slate-50/40 border-slate-200',
+        countBg: 'bg-slate-700 text-white'
+      },
+      {
+        rank: 3,
+        medal: '🥉',
+        badgeBg: 'bg-orange-100 text-orange-900 border-orange-300/80',
+        cardBg: 'bg-gradient-to-br from-orange-50/80 via-white to-orange-50/20 border-orange-200/90',
+        countBg: 'bg-orange-600 text-white'
+      }
+    ];
+
+    container.innerHTML = sortedSchools.map(([schoolName, count], idx) => {
+      const conf = rankConfig[idx] || rankConfig[2];
+      const parts = schoolName.split(',');
+      const mainName = parts[0].trim();
+      const location = parts.slice(1).join(',').trim();
+
+      return `
+        <div
+          class="flex flex-col justify-between w-[72vw] xs:w-[240px] sm:w-auto shrink-0 snap-start p-3 sm:p-3.5 rounded-2xl border ${conf.cardBg} shadow-2xs"
+        >
+          <div class="flex items-center justify-between gap-1.5 mb-1.5">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border text-[11px] font-black ${conf.badgeBg}">
+              <span>${conf.medal}</span>
+              <span>#${conf.rank}</span>
+            </span>
+            <span class="inline-flex items-center gap-1 text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg shadow-2xs ${conf.countBg}">
+              ${count} Students
+            </span>
+          </div>
+
+          <div class="min-w-0">
+            <h4 class="text-xs sm:text-sm font-black text-slate-900 line-clamp-2 leading-snug">
+              ${escapeHTML(mainName)}
+            </h4>
+            ${location ? `<p class="text-[11px] font-medium text-slate-500 mt-0.5 truncate">${escapeHTML(location)}</p>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
   }
 
   function escapeHTML(str) {
