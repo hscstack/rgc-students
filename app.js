@@ -477,18 +477,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const startIdx = Math.max(0, targetIdx - WINDOW_SIZE);
     const endIdx = Math.min(rawData.length - 1, targetIdx + WINDOW_SIZE);
 
-    filteredData = rawData.slice(startIdx, endIdx + 1).map((item) => {
-      const isDirectMatch = item.Roll === targetStudent.Roll;
-      let matchContext = null;
-      if (!isDirectMatch) {
-        matchContext = item.indexNumber < targetStudent.indexNumber ? 'in_front' : 'after';
-      }
-      return {
-        ...item,
-        isDirectMatch,
-        matchContext
-      };
-    });
+    filteredData = rawData.slice(startIdx, endIdx + 1).map((item) => ({
+      ...item,
+      isDirectMatch: item.Roll === targetStudent.Roll
+    }));
 
     visibleCount.textContent = filteredData.length;
     currentPage = 1;
@@ -497,39 +489,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchContextBanner) {
       searchContextBanner.classList.remove('hidden');
       searchContextBanner.classList.add('flex');
-      searchContextBanner.className = 'flex items-center justify-between gap-3 px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 shadow-xs mb-1';
+      searchContextBanner.className = 'flex items-center justify-between gap-2 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs mb-2';
       
-      const backButtonHtml = hasParentMultiList
-        ? `<button id="btn-back-to-matches" class="inline-flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-slate-950 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors shrink-0 cursor-pointer">
-             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-             <span>Back to Matches</span>
-           </button>`
-        : `<button id="btn-reset-search-banner" class="inline-flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-slate-950 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors shrink-0 cursor-pointer">
-             <span>View All (364)</span>
-           </button>`;
+      const backBtnText = hasParentMultiList ? '← Matches' : 'Show All (364)';
 
       searchContextBanner.innerHTML = `
         <div class="flex items-center gap-2 min-w-0">
-          <span class="font-mono font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">${escapeHTML(targetStudent.Roll)}</span>
-          <span class="truncate">Roll sequence (<span class="text-slate-500">showing classmates in front & after</span>)</span>
+          <span class="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 shrink-0">${escapeHTML(targetStudent.Roll)}</span>
+          <span class="text-slate-600 truncate text-[11px] sm:text-xs">Classmates in roll order</span>
         </div>
-        ${backButtonHtml}
+        <button id="btn-banner-action" class="text-[11px] sm:text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg transition-colors shrink-0 cursor-pointer touch-manipulation">
+          ${backBtnText}
+        </button>
       `;
 
-      const btnBackMatches = document.getElementById('btn-back-to-matches');
-      if (btnBackMatches) {
-        btnBackMatches.addEventListener('click', () => {
-          showMultiMatchPicker(multiMatchList, lastSearchQuery);
-        });
-      }
-
-      const btnResetBanner = document.getElementById('btn-reset-search-banner');
-      if (btnResetBanner) {
-        btnResetBanner.addEventListener('click', () => {
-          searchInput.value = '';
-          searchClearBtn.classList.add('hidden');
-          searchClearBtn.classList.remove('flex');
-          resetToAllStudents();
+      const btnAction = document.getElementById('btn-banner-action');
+      if (btnAction) {
+        btnAction.addEventListener('click', () => {
+          if (hasParentMultiList) {
+            showMultiMatchPicker(multiMatchList, lastSearchQuery);
+          } else {
+            searchInput.value = '';
+            searchClearBtn.classList.add('hidden');
+            searchClearBtn.classList.remove('flex');
+            resetToAllStudents();
+          }
         });
       }
     }
@@ -543,8 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     filteredData = matches.map(s => ({
       ...s,
-      isDirectMatch: false,
-      matchContext: null
+      isDirectMatch: false
     }));
 
     visibleCount.textContent = filteredData.length;
@@ -554,14 +537,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchContextBanner) {
       searchContextBanner.classList.remove('hidden');
       searchContextBanner.classList.add('flex');
-      searchContextBanner.className = 'flex items-center justify-between gap-3 px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 shadow-xs mb-1';
+      searchContextBanner.className = 'flex items-center justify-between gap-2 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs mb-2';
       searchContextBanner.innerHTML = `
-        <div class="flex items-center gap-2 min-w-0">
-          <span class="font-bold text-slate-900">${matches.length} students found.</span>
-          <span class="text-slate-500 truncate">Select a student to view their roll sequence:</span>
+        <div class="flex items-center gap-1.5 min-w-0">
+          <span class="font-bold text-slate-900 shrink-0">${matches.length} matches</span>
+          <span class="text-slate-500 truncate text-[11px] sm:text-xs">Select to view roll sequence</span>
         </div>
-        <button id="btn-reset-multi-banner" class="text-xs font-bold text-slate-700 hover:text-slate-950 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors shrink-0 cursor-pointer">
-          View All (364)
+        <button id="btn-reset-multi-banner" class="text-[11px] sm:text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg transition-colors shrink-0 cursor-pointer touch-manipulation">
+          Show All
         </button>
       `;
 
@@ -604,58 +587,37 @@ document.addEventListener('DOMContentLoaded', () => {
       const highlightedRoll = highlight(student.Roll, q);
 
       const isDirectMatch = student.isDirectMatch;
-      const matchContext = student.matchContext;
 
-      // Clean, un-slop styling
-      let cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-white border border-slate-200 rounded-xl p-3.5 sm:p-4 cursor-pointer hover:border-slate-300 hover:bg-slate-50/70 transition-all shadow-2xs';
+      // Clean, elegant card styling
+      let cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-white border border-slate-200 rounded-xl p-3 sm:p-3.5 cursor-pointer hover:border-slate-300 hover:bg-slate-50/70 transition-all shadow-2xs touch-manipulation active:scale-[0.99]';
       let badgeHtml = '';
 
-      if (isSequenceMode) {
-        if (isDirectMatch) {
-          cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-slate-900 border-2 border-slate-900 rounded-xl p-3.5 sm:p-4 cursor-pointer text-white shadow-md';
-          badgeHtml = `
-            <span class="inline-flex items-center gap-1 rounded-md bg-white/20 text-white text-[10px] font-bold px-2 py-0.5">
-              Target Roll
-            </span>
-          `;
-        } else if (matchContext === 'in_front') {
-          cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-white border border-slate-200/90 rounded-xl p-3 sm:p-3.5 cursor-pointer hover:bg-slate-50 transition-all shadow-2xs opacity-90 hover:opacity-100';
-          badgeHtml = `
-            <span class="inline-flex items-center rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5">
-              In Front
-            </span>
-          `;
-        } else if (matchContext === 'after') {
-          cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-white border border-slate-200/90 rounded-xl p-3 sm:p-3.5 cursor-pointer hover:bg-slate-50 transition-all shadow-2xs opacity-90 hover:opacity-100';
-          badgeHtml = `
-            <span class="inline-flex items-center rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5">
-              After
-            </span>
-          `;
-        }
-      } else if (isPickerMode) {
-        cardStyle = 'group flex flex-col sm:flex-row sm:items-center justify-between bg-white border border-slate-200 rounded-xl p-3.5 sm:p-4 cursor-pointer hover:border-slate-400 hover:bg-slate-50 transition-all shadow-2xs';
+      if (isSequenceMode && isDirectMatch) {
+        cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-indigo-50/40 border border-indigo-200 ring-1 ring-indigo-500/20 rounded-xl p-3 sm:p-3.5 cursor-pointer hover:bg-indigo-50/60 transition-all shadow-xs touch-manipulation active:scale-[0.99]';
+        badgeHtml = `
+          <span class="inline-flex items-center gap-1 rounded-md bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 border border-indigo-200/60">
+            Searched
+          </span>
+        `;
       }
 
       const rollBadgeClass = isSequenceMode && isDirectMatch
-        ? 'font-mono text-sm font-bold text-white bg-white/10 px-3 py-1.5 rounded-xl border border-white/20'
-        : 'font-mono text-sm font-bold text-slate-800 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200';
+        ? 'font-mono text-xs sm:text-sm font-bold text-indigo-800 bg-white px-3 py-1 rounded-lg border border-indigo-200 shadow-2xs'
+        : 'font-mono text-xs sm:text-sm font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-lg border border-slate-200';
 
       const rollBadgeMobileClass = isSequenceMode && isDirectMatch
-        ? 'font-mono text-xs font-bold text-white bg-white/10 px-2 py-0.5 rounded-md border border-white/20'
-        : 'font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200';
+        ? 'font-mono text-xs font-bold text-indigo-800 bg-indigo-100 px-2 py-0.5 rounded border border-indigo-200'
+        : 'font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200';
 
-      const nameClass = isSequenceMode && isDirectMatch
-        ? 'font-bold text-white text-base leading-snug truncate'
-        : 'font-bold text-slate-800 text-base leading-snug truncate group-hover:text-slate-950 transition-colors';
+      const nameClass = 'font-bold text-slate-900 text-sm sm:text-base leading-snug truncate group-hover:text-indigo-600 transition-colors';
 
       const actionButtonHtml = isPickerMode
-        ? `<div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-bold group-hover:bg-slate-800 transition-colors shrink-0">
+        ? `<div class="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 text-white text-xs font-bold group-hover:bg-slate-800 transition-colors shrink-0">
              <span>Select</span>
-             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
            </div>`
         : `<div class="w-8 flex justify-end shrink-0 pl-2">
-             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ${isSequenceMode && isDirectMatch ? 'text-white/60' : 'text-slate-300 group-hover:text-slate-600'} transition-all" viewBox="0 0 20 20" fill="currentColor">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 text-slate-300 group-hover:text-slate-600 transition-colors" viewBox="0 0 20 20" fill="currentColor">
                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
              </svg>
            </div>`;
@@ -665,11 +627,11 @@ document.addEventListener('DOMContentLoaded', () => {
       row.innerHTML = `
         <!-- Mobile View (visible block sm:hidden) -->
         <div class="flex sm:hidden items-center justify-between gap-3 w-full">
-          <div class="flex items-center gap-3 min-w-0 flex-1">
-            <div class="relative w-11 h-11 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs">
-              <img src="${escapeHTML(student.Image_URL)}" alt="" referrerpolicy="no-referrer" class="w-full h-full object-cover" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'48\\' height=\\'48\\' fill=\\'%2394a3b8\\' viewBox=\\'0 0 24 24\\'><path d=\\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\\'/></svg>'">
+          <div class="flex items-center gap-2.5 min-w-0 flex-1">
+            <div class="relative w-10 h-10 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs">
+              <img src="${escapeHTML(student.Image_URL)}" alt="" referrerpolicy="no-referrer" class="w-full h-full object-cover" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'40\\' height=\\'40\\' fill=\\'%2394a3b8\\' viewBox=\\'0 0 24 24\\'><path d=\\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\\'/></svg>'">
             </div>
-            <div class="flex flex-col min-w-0 flex-1 gap-1">
+            <div class="flex flex-col min-w-0 flex-1 gap-0.5">
               <div class="flex items-center gap-1.5 flex-wrap">
                 <span class="${nameClass}">
                   ${highlightedName}
@@ -683,8 +645,8 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
             </div>
           </div>
-          <div class="shrink-0 ${isSequenceMode && isDirectMatch ? 'text-white' : 'text-slate-400'}">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <div class="shrink-0 text-slate-300 group-hover:text-slate-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
             </svg>
           </div>
