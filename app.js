@@ -28,10 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalRollBadge = document.getElementById('modal-roll-badge');
   const modalRoll = document.getElementById('modal-roll');
   const modalSession = document.getElementById('modal-session');
-  const modalYear = document.getElementById('modal-year');
   const modalCopyBtn = document.getElementById('modal-copy-btn');
-  const modalPrevStudent = document.getElementById('modal-prev-student');
-  const modalNextStudent = document.getElementById('modal-next-student');
 
   // Search Context Banner
   const searchContextBanner = document.getElementById('search-context-banner');
@@ -219,26 +216,6 @@ document.addEventListener('DOMContentLoaded', () => {
       studentModal.addEventListener('click', (e) => {
         if (e.target === studentModal) closeStudentModal();
       });
-
-      if (modalPrevStudent) {
-        modalPrevStudent.addEventListener('click', () => {
-          if (!selectedStudent) return;
-          const curIdx = rawData.findIndex(s => s.Roll === selectedStudent.Roll);
-          if (curIdx > 0) {
-            openStudentModal(rawData[curIdx - 1]);
-          }
-        });
-      }
-
-      if (modalNextStudent) {
-        modalNextStudent.addEventListener('click', () => {
-          if (!selectedStudent) return;
-          const curIdx = rawData.findIndex(s => s.Roll === selectedStudent.Roll);
-          if (curIdx >= 0 && curIdx < rawData.length - 1) {
-            openStudentModal(rawData[curIdx + 1]);
-          }
-        });
-      }
 
       if (authModalClose) {
         authModalClose.addEventListener('click', closeAuthModal);
@@ -804,16 +781,6 @@ document.addEventListener('DOMContentLoaded', () => {
     modalRollBadge.textContent = student.Roll || '-';
     modalRoll.textContent = student.Roll || '-';
     modalSession.textContent = student.Session || '2026-2027';
-    modalYear.textContent = student['Academic Year'] ? `Year ${student['Academic Year']}` : '1st Year';
-
-    // Update In Front (Prev) / After (Next) button states
-    const curIdx = rawData.findIndex(s => s.Roll === student.Roll);
-    if (modalPrevStudent) {
-      modalPrevStudent.disabled = curIdx <= 0;
-    }
-    if (modalNextStudent) {
-      modalNextStudent.disabled = curIdx < 0 || curIdx >= rawData.length - 1;
-    }
 
     studentModal.classList.remove('hidden');
     setTimeout(() => {
