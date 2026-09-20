@@ -22,21 +22,13 @@ POSSIBLE_LEADERBOARD_PATHS = [
 
 
 def normalize_name(name: str) -> str:
-    """Normalize student name by removing special characters, punctuation, and extra spaces."""
+    """Normalize student name by removing special characters, punctuation, and extra spaces while preserving full prefixes."""
     if not name:
         return ""
     name = str(name).upper().strip()
     name = re.sub(r"[^A-Z0-9\s]", " ", name)
     name = re.sub(r"\s+", " ", name).strip()
     return name
-
-
-def clean_name_tokens(name: str) -> str:
-    """Normalize and remove common Bangladeshi name honorifics/prefixes."""
-    norm = normalize_name(name)
-    ignore_tokens = {"MD", "MST", "MOHAMMAD", "MUHAMMAD", "MOST", "MOSTA", "SHEIKH", "SK", "SYED", "SYEDA"}
-    tokens = [t for t in norm.split() if t not in ignore_tokens]
-    return " ".join(tokens)
 
 
 def format_school_name(raw_name: str) -> str:
@@ -86,19 +78,15 @@ def load_dinajpur_leaderboard():
     return None
 
 
-def enrich_student_record(student: dict, exact_map: dict, token_map: dict, schools: list[str]) -> dict:
-    """Enrich a single student record with SSC details if found."""
+def enrich_student_record(student: dict, exact_map: dict, schools: list[str]) -> dict:
+    """Enrich a single student record with SSC details only on 100% strictly exact unique match."""
     r_name = student.get("Name", "")
     r_norm = normalize_name(r_name)
-    r_tok = clean_name_tokens(r_name)
     
     candidate = None
-    if r_norm in exact_map and len(exact_map[r_norm]) == 1:
-        # Strictly single unique exact name match
+    # Strictly single unique 100% exact full name match across the entire board
+    if r_norm and r_norm in exact_map and len(exact_map[r_norm]) == 1:
         candidate = exact_map[r_norm][0]
-    elif r_tok in token_map and len(token_map[r_tok]) == 1:
-        # Strictly single unique tokenized match
-        candidate = token_map[r_tok][0]
             
     if candidate:
         # candidate: [id, name, school_idx, upz_idx, dist_idx, grp_idx, gpa, mark, globalRank, is_passed, roll]
@@ -126,23 +114,16 @@ def enrich_all_students(save: bool = True):
     schools = leaderboard.get("schools", [])
     d_students = leaderboard.get("students", [])
     
-    print(f"[*] Building lookup index over {len(d_students):,} SSC student records...")
+    print(f"[*] Building 100% exact lookup index over {len(d_students):,} SSC student records...")
     exact_map = {}
-    token_map = {}
     
     for s in d_students:
         s_name = s[1]
         norm = normalize_name(s_name)
-        tok = clean_name_tokens(s_name)
-        
-        if norm not in exact_map:
-            exact_map[norm] = []
-        exact_map[norm].append(s)
-        
-        if tok:
-            if tok not in token_map:
-                token_map[tok] = []
-            token_map[tok].append(s)
+        if norm:
+            if norm not in exact_map:
+                exact_map[norm] = []
+            exact_map[norm].append(s)
             
     if not STUDENTS_JSON.exists():
         print(f"[-] {STUDENTS_JSON} not found.")
@@ -153,11 +134,11 @@ def enrich_all_students(save: bool = True):
         
     matched_count = 0
     for student in students:
-        enrich_student_record(student, exact_map, token_map, schools)
+        enrich_student_record(student, exact_map, schools)
         if student.get("SSC_Marks") is not None:
             matched_count += 1
             
-    print(f"[✓] Successfully enriched {matched_count} of {len(students)} students ({(matched_count/len(students))*100:.1f}%).")
+    print(f"[✓] Successfully enriched {matched_count} of {len(students)} students ({(matched_count/len(students))*100:.1f}%) with 100% strictly exact matches.")
     
     if save:
         # Sort by Roll number

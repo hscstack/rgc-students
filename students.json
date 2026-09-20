@@ -486,10 +486,10 @@
         "Session": "2026-2027",
         "Academic Year": "1",
         "Image_URL": "https://rgc.eshiksaems.com/image/student/202609201033456aaf6229cff6a.jpg",
-        "SSC_Marks": 630,
-        "SSC_GPA": 3.56,
-        "Previous_School": "Mathurapur Public High School, Thakurgaon",
-        "SSC_Roll": "255016"
+        "SSC_Marks": null,
+        "SSC_GPA": null,
+        "Previous_School": "",
+        "SSC_Roll": ""
     },
     {
         "Roll": "1262701042",
@@ -5958,10 +5958,10 @@
         "Session": "2026-2027",
         "Academic Year": "1",
         "Image_URL": "https://rgc.eshiksaems.com/image/student/202609202036146aafef5e6a5c2.jpg",
-        "SSC_Marks": 959,
-        "SSC_GPA": 5.0,
-        "Previous_School": "Police Lines School and College, Rangpur",
-        "SSC_Roll": "186898"
+        "SSC_Marks": null,
+        "SSC_GPA": null,
+        "Previous_School": "",
+        "SSC_Roll": ""
     },
     {
         "Roll": "1262701499",
