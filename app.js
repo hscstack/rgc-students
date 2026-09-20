@@ -231,9 +231,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       resetToAllStudents();
 
-      // Auto-show Welcome Notice on first visit
+      // Auto-show Welcome Notice once per new browser tab/session
       try {
-        if (!localStorage.getItem('rgc_welcome_notice_v1')) {
+        if (!sessionStorage.getItem('rgc_welcome_notice_tab_seen')) {
           setTimeout(() => {
             openWelcomeModal();
           }, 350);
@@ -1006,7 +1006,7 @@ document.addEventListener('DOMContentLoaded', () => {
       welcomeModalInner.classList.remove('scale-100', 'translate-y-0');
     }
     try {
-      localStorage.setItem('rgc_welcome_notice_v1', 'true');
+      sessionStorage.setItem('rgc_welcome_notice_tab_seen', 'true');
     } catch (e) {}
     setTimeout(() => {
       welcomeModal.classList.add('hidden');
