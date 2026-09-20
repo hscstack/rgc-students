@@ -131,6 +131,36 @@ def fetch_student_record(roll_number: str, phpsessid: str) -> dict | None:
     return info
 
 
+def git_commit_and_push(files: list[str], count: int, total: int):
+    """Automatically commit and push updated student files to GitHub."""
+    try:
+        import subprocess
+        # Check if git repo exists
+        subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        
+        # Add files
+        subprocess.run(["git", "add"] + files, check=True)
+        
+        # Check if there are staged changes
+        res = subprocess.run(["git", "diff", "--cached", "--quiet"])
+        if res.returncode == 0:
+            print("[*] No staged changes to commit in git.")
+            return
+
+        commit_msg = f"data(update): auto-sync {count} new student record(s) (total: {total})"
+        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+        print(f"[+] Git committed: '{commit_msg}'")
+
+        print("[*] Pushing latest data to GitHub (origin main)...")
+        push_res = subprocess.run(["git", "push", "origin", "main"], capture_output=True, text=True)
+        if push_res.returncode == 0:
+            print("[✓] Successfully pushed to GitHub!")
+        else:
+            print(f"[-] Warning: Git push exited with code {push_res.returncode}: {push_res.stderr.strip()}")
+    except Exception as e:
+        print(f"[-] Auto-git error: {e}")
+
+
 def run_incremental_fetch(
     json_file: str = DEFAULT_JSON_FILE,
     js_file: str = DEFAULT_JS_FILE,
@@ -138,7 +168,8 @@ def run_incremental_fetch(
     start_roll: int | None = None,
     max_consecutive_misses: int = 5,
     delay: float = 0.25,
-    fill_gaps: bool = False
+    fill_gaps: bool = False,
+    auto_push: bool = True
 ):
     print("=" * 60)
     print("  RGC Students Directory — Incremental Fetcher")
@@ -220,12 +251,23 @@ def run_incremental_fetch(
     print(f"[✓] Completed! Found and added {new_found_count} new student(s).")
     print(f"[✓] Total recorded students: {len(students)}")
     print(f"[✓] Updated {json_file} and {js_file}")
+
+    # Auto commit and push if new students were found
+    if new_found_count > 0 and auto_push:
+        print("\n[*] Auto-push enabled. Syncing to GitHub...")
+        files_to_commit = [json_file]
+        if js_file:
+            files_to_commit.append(js_file)
+        git_commit_and_push(files_to_commit, new_found_count, len(students))
+    elif new_found_count == 0:
+        print("[*] No new records to commit. Repository is up-to-date.")
+
     print("=" * 60)
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Fetch latest registered students from Rangpur Govt College portal."
+        description="Fetch latest registered students from Rangpur Govt College portal and auto-push to GitHub."
     )
     parser.add_argument(
         "-s", "--session",
@@ -256,6 +298,11 @@ def main():
         help="Also re-check missing roll numbers within the existing minimum and maximum range"
     )
     parser.add_argument(
+        "--no-push",
+        action="store_true",
+        help="Do not automatically commit and push new data to GitHub"
+    )
+    parser.add_argument(
         "--json",
         default=DEFAULT_JSON_FILE,
         help=f"Path to output JSON file (default: {DEFAULT_JSON_FILE})"
@@ -275,7 +322,8 @@ def main():
         start_roll=args.start,
         max_consecutive_misses=args.max_misses,
         delay=args.delay,
-        fill_gaps=args.fill_gaps
+        fill_gaps=args.fill_gaps,
+        auto_push=not args.no_push
     )
 
 
