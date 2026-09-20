@@ -2,8 +2,8 @@ name: Auto-fetch Latest Students
 
 on:
   schedule:
-    # Runs automatically every hour (UTC). You can change this cron expression if needed.
-    - cron: '0 * * * *'
+    # Runs automatically every 5 minutes
+    - cron: '*/5 * * * *'
   workflow_dispatch: # Allows manual trigger from the GitHub Actions tab
 
 jobs:
