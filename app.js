@@ -49,6 +49,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const privacyModalClose = document.getElementById('privacy-modal-close');
   const privacyModalOkBtn = document.getElementById('privacy-modal-ok-btn');
 
+  // Welcome / Notice Modal Elements
+  const welcomeModal = document.getElementById('welcome-modal');
+  const welcomeModalInner = document.getElementById('welcome-modal-inner');
+  const welcomeClose = document.getElementById('welcome-close');
+
   // Auth Modal Elements
   const authModal = document.getElementById('auth-modal');
   const authModalInner = document.getElementById('auth-modal-inner');
@@ -138,6 +143,15 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    if (welcomeClose) {
+      welcomeClose.addEventListener('click', closeWelcomeModal);
+    }
+    if (welcomeModal) {
+      welcomeModal.addEventListener('click', (e) => {
+        if (e.target === welcomeModal) closeWelcomeModal();
+      });
+    }
+
     if (openPrivacyBtn) openPrivacyBtn.addEventListener('click', openPrivacyModal);
     if (privacyModalClose) privacyModalClose.addEventListener('click', closePrivacyModal);
     if (privacyModalOkBtn) privacyModalOkBtn.addEventListener('click', closePrivacyModal);
@@ -165,6 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
+        if (welcomeModal && !welcomeModal.classList.contains('hidden')) closeWelcomeModal();
         if (studentModal && !studentModal.classList.contains('hidden')) closeStudentModal();
         if (privacyModal && !privacyModal.classList.contains('hidden')) closePrivacyModal();
         if (authModal && !authModal.classList.contains('hidden')) closeAuthModal();
@@ -215,6 +230,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       resetToAllStudents();
+
+      // Auto-show Welcome Notice on first visit
+      try {
+        if (!localStorage.getItem('rgc_welcome_notice_v1')) {
+          setTimeout(() => {
+            openWelcomeModal();
+          }, 350);
+        }
+      } catch (e) {}
 
       // Event Listeners for Search
       if (searchForm) {
@@ -955,6 +979,37 @@ document.addEventListener('DOMContentLoaded', () => {
     authModalInner.classList.remove('scale-100');
     setTimeout(() => {
       authModal.classList.add('hidden');
+    }, 250);
+    document.body.style.overflow = '';
+  }
+
+  function openWelcomeModal() {
+    if (!welcomeModal) return;
+    welcomeModal.classList.remove('hidden');
+    setTimeout(() => {
+      welcomeModal.classList.add('opacity-100');
+      welcomeModal.classList.remove('opacity-0', 'pointer-events-none');
+      if (welcomeModalInner) {
+        welcomeModalInner.classList.remove('scale-95', 'translate-y-8');
+        welcomeModalInner.classList.add('scale-100', 'translate-y-0');
+      }
+    }, 10);
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeWelcomeModal() {
+    if (!welcomeModal) return;
+    welcomeModal.classList.remove('opacity-100');
+    welcomeModal.classList.add('opacity-0', 'pointer-events-none');
+    if (welcomeModalInner) {
+      welcomeModalInner.classList.add('scale-95', 'translate-y-8');
+      welcomeModalInner.classList.remove('scale-100', 'translate-y-0');
+    }
+    try {
+      localStorage.setItem('rgc_welcome_notice_v1', 'true');
+    } catch (e) {}
+    setTimeout(() => {
+      welcomeModal.classList.add('hidden');
     }, 250);
     document.body.style.overflow = '';
   }
