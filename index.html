@@ -239,33 +239,33 @@
     </nav>
 
     <!-- Signature Hero Section -->
-    <div class="px-6 pt-8 pb-3 text-center sm:pt-12 sm:pb-6">
+    <div class="px-4 pt-6 pb-2 text-center sm:px-6 sm:pt-12 sm:pb-6">
       <div class="mx-auto max-w-3xl">
-        <h1 class="mb-4 text-4xl font-black tracking-tight text-slate-900 sm:text-6xl lg:leading-[1.15]">
+        <h1 class="mb-3 text-3xl font-black tracking-tight text-slate-900 sm:text-5xl lg:text-6xl lg:leading-[1.15]">
           HSC 2028 <br />
           <span class="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
             Rangpur Govt College Students List
           </span>
         </h1>
 
-        <p class="mx-auto mb-6 max-w-xl text-base leading-relaxed font-medium text-slate-700/90 sm:text-lg">
+        <p class="mx-auto mb-5 max-w-xl text-sm leading-relaxed font-medium text-slate-600 sm:text-base">
           Powered by
           <a
             href="https://hscstack.site"
             target="_blank"
             rel="noopener noreferrer"
-            class="text-indigo-600 hover:text-indigo-700 underline decoration-indigo-300 underline-offset-4 transition-colors"
+            class="text-indigo-600 hover:text-indigo-700 font-semibold underline decoration-indigo-300 underline-offset-4 transition-colors"
             >HSC Stack</a
           >
-          — Explore all <strong id="stat-students" class="font-extrabold text-slate-900">364</strong> registered students from Rangpur Govt College
+          — Explore all <strong id="stat-students" class="font-extrabold text-slate-900">364</strong> registered students
         </p>
 
         <!-- Clean Search Bar with Explicit Search Button -->
-        <form id="search-form" class="relative mx-auto max-w-4xl mb-4">
-          <div class="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm transition-all focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-slate-200">
-            <div class="relative flex-1 flex items-center">
+        <form id="search-form" class="relative mx-auto max-w-3xl mb-3">
+          <div class="flex items-center gap-1.5 sm:gap-2 rounded-2xl border border-slate-200 bg-white p-1 sm:p-1.5 shadow-sm transition-all focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-slate-200">
+            <div class="relative flex-1 flex items-center min-w-0">
               <svg
-                class="pointer-events-none absolute left-3.5 h-5 w-5 text-slate-400"
+                class="pointer-events-none absolute left-3 h-4 w-4 sm:h-5 sm:w-5 text-slate-400 shrink-0"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="none"
@@ -280,14 +280,15 @@
               <input
                 type="text"
                 id="search-input"
-                placeholder="Enter Roll Number or Student Name..."
+                placeholder="Search Roll or Name..."
                 autocomplete="off"
-                class="w-full appearance-none bg-transparent py-2.5 pr-9 pl-11 text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                class="w-full appearance-none bg-transparent py-2.5 pr-8 pl-9 sm:pl-10 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none"
               />
               <button
                 type="button"
                 id="search-clear-btn"
-                class="absolute right-2.5 h-6 w-6 rounded-full bg-slate-100 text-slate-400 hover:text-slate-700 hidden items-center justify-center transition-colors text-xs font-bold"
+                class="absolute right-2 h-6 w-6 rounded-full bg-slate-100 text-slate-400 hover:text-slate-700 hidden items-center justify-center transition-colors text-xs font-bold shrink-0"
+                aria-label="Clear search"
               >
                 ✕
               </button>
@@ -295,9 +296,9 @@
             <button
               type="submit"
               id="search-submit-btn"
-              class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-bold text-white shadow-xs transition-all hover:bg-slate-800 active:scale-95 cursor-pointer shrink-0"
+              class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2.5 sm:px-5 sm:py-2.5 text-xs font-bold text-white shadow-xs transition-all hover:bg-slate-800 active:scale-95 cursor-pointer shrink-0 touch-manipulation"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
@@ -307,20 +308,20 @@
         </form>
 
         <!-- Filter Count & Sort Strip -->
-        <div class="flex flex-row items-center justify-between mx-auto max-w-4xl text-xs font-semibold text-slate-500 mb-2 px-1">
-          <div class="flex items-center gap-1.5">
+        <div class="flex flex-row items-center justify-between mx-auto max-w-3xl text-xs font-semibold text-slate-500 mb-2 px-1">
+          <div class="flex items-center gap-1">
             <span>Showing</span>
             <strong id="visible-count" class="font-extrabold text-slate-900">0</strong>
             <span>of</span>
             <span id="total-count">0</span>
-            <span>students</span>
+            <span class="hidden xs:inline">students</span>
           </div>
 
-          <div class="flex items-center gap-2">
-            <label for="sort-select" class="hidden sm:inline-block font-medium">Sort by:</label>
+          <div class="flex items-center gap-1.5">
+            <label for="sort-select" class="hidden sm:inline-block font-medium text-slate-500">Sort:</label>
             <select
               id="sort-select"
-              class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs focus:border-teal-500 focus:outline-none cursor-pointer"
+              class="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] sm:text-xs font-bold text-slate-700 shadow-2xs focus:border-teal-500 focus:outline-none cursor-pointer"
             >
               <option value="roll-asc">Roll (Ascending)</option>
               <option value="roll-desc">Roll (Descending)</option>
@@ -330,25 +331,25 @@
           </div>
         </div>
 
-        <p class="text-xs text-slate-400 font-medium text-center mb-4">
-          Click on a student to view details and photo
+        <p class="text-[11px] sm:text-xs text-slate-400 font-medium text-center mb-3">
+          Tap any student to view full details
         </p>
       </div>
     </div>
 
     <!-- Main Container -->
-    <main class="mx-auto max-w-5xl px-4 pb-6 sm:px-6">
+    <main class="mx-auto max-w-5xl px-3.5 pb-20 sm:px-6 sm:pb-8">
       <!-- Loading Skeleton State -->
-      <div id="loading-state" class="flex flex-col gap-3">
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm animate-pulse flex items-center gap-3">
-          <div class="w-10 h-10 bg-slate-200 rounded-xl shrink-0"></div>
+      <div id="loading-state" class="flex flex-col gap-2.5">
+        <div class="bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm animate-pulse flex items-center gap-3">
+          <div class="w-11 h-11 bg-slate-200 rounded-xl shrink-0"></div>
           <div class="flex flex-col gap-2 flex-1">
             <div class="h-4 bg-slate-200 rounded w-48"></div>
             <div class="h-3 bg-slate-100 rounded w-36"></div>
           </div>
         </div>
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm animate-pulse flex items-center gap-3">
-          <div class="w-10 h-10 bg-slate-200 rounded-xl shrink-0"></div>
+        <div class="bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm animate-pulse flex items-center gap-3">
+          <div class="w-11 h-11 bg-slate-200 rounded-xl shrink-0"></div>
           <div class="flex flex-col gap-2 flex-1">
             <div class="h-4 bg-slate-200 rounded w-40"></div>
             <div class="h-3 bg-slate-100 rounded w-32"></div>
@@ -357,45 +358,40 @@
       </div>
 
       <!-- Empty State -->
-      <div id="empty-state" class="text-center py-16 bg-white rounded-2xl border border-slate-200 shadow-sm hidden">
-        <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400 mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div id="empty-state" class="text-center py-12 px-4 bg-white rounded-2xl border border-slate-200 shadow-sm hidden">
+        <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400 mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
         </div>
-        <p class="text-slate-800 font-bold text-lg mb-1">No students found</p>
-        <p class="text-slate-500 font-medium text-sm">Try adjusting your search criteria.</p>
+        <p class="text-slate-800 font-bold text-base sm:text-lg mb-1">No students found</p>
+        <p class="text-slate-500 font-medium text-xs sm:text-sm">Try adjusting your search criteria or check your spelling.</p>
       </div>
 
       <!-- Leaderboard / Students Container -->
-      <div class="hidden flex-col gap-3" id="leaderboard-container">
+      <div class="hidden flex-col gap-2.5" id="leaderboard-container">
         <!-- Search Context Banner -->
-        <div id="search-context-banner" class="hidden items-center justify-between px-4 py-2.5 bg-indigo-50/80 border border-indigo-100/90 rounded-xl text-xs font-semibold text-indigo-900">
-          <div class="flex items-center gap-2">
-            <span class="flex h-2 w-2 rounded-full bg-indigo-600 animate-pulse"></span>
-            <span>Showing matched students with surrounding classmates in front and after</span>
-          </div>
-        </div>
+        <div id="search-context-banner" class="hidden"></div>
 
         <!-- Desktop Table Header -->
-        <div class="hidden sm:flex p-4 bg-white/50 border border-slate-200 rounded-xl text-xs font-bold text-slate-500 uppercase tracking-wider items-center">
+        <div class="hidden sm:flex p-3.5 bg-white/60 border border-slate-200 rounded-xl text-xs font-bold text-slate-500 uppercase tracking-wider items-center">
           <div class="w-36 text-center shrink-0">Roll Number</div>
           <div class="w-12 text-center shrink-0 ml-1">Photo</div>
           <div class="flex-1 px-4">Student Name</div>
-          <div class="w-28 text-right shrink-0 pr-2">Status</div>
+          <div class="w-28 text-right shrink-0 pr-2">Action</div>
         </div>
 
         <!-- Leaderboard Body -->
-        <div id="leaderboard-body" class="flex flex-col gap-3">
+        <div id="leaderboard-body" class="flex flex-col gap-2.5">
           <!-- Populated by JavaScript -->
         </div>
 
         <!-- Pagination Container -->
-        <div id="pagination-container" class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div id="pagination-container" class="mt-3 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm">
           <div class="flex items-center gap-2 text-xs font-semibold text-slate-500">
-            <span>Students per page:</span>
-            <select id="page-size" class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-700 outline-none">
+            <span>Per page:</span>
+            <select id="page-size" class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-700 outline-none cursor-pointer">
               <option value="25">25</option>
               <option value="50">50</option>
               <option value="100">100</option>
@@ -403,15 +399,15 @@
             </select>
           </div>
 
-          <div class="flex items-center gap-1.5">
-            <button id="btn-prev" class="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:pointer-events-none transition-all">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <div class="flex items-center gap-1">
+            <button id="btn-prev" class="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:pointer-events-none transition-all touch-manipulation" aria-label="Previous page">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="15 18 9 12 15 6"></polyline>
               </svg>
             </button>
             <div id="page-numbers" class="flex items-center gap-1"></div>
-            <button id="btn-next" class="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:pointer-events-none transition-all">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <button id="btn-next" class="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:pointer-events-none transition-all touch-manipulation" aria-label="Next page">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6"></polyline>
               </svg>
             </button>
@@ -423,37 +419,38 @@
     <!-- Student Detail Modal -->
     <div
       id="student-modal"
-      class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 opacity-0 pointer-events-none transition-all duration-300 hidden p-4"
+      class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 opacity-0 pointer-events-none transition-all duration-300 hidden p-3.5 sm:p-4"
     >
       <div
-        class="bg-white rounded-3xl w-full max-w-md shadow-2xl transform translate-y-8 transition-all duration-300 overflow-hidden scale-95 flex flex-col p-6 sm:p-8 relative text-center items-center"
+        class="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl transform translate-y-6 transition-all duration-300 scale-95 flex flex-col p-5 sm:p-7 relative text-center items-center overscroll-contain"
         id="student-modal-inner"
       >
         <button
-          class="absolute top-5 right-5 h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors z-10"
+          class="absolute top-4 right-4 h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors z-10 touch-manipulation cursor-pointer"
           id="student-modal-close"
+          aria-label="Close modal"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
         </button>
 
-        <div class="relative w-28 h-28 rounded-2xl overflow-hidden border-2 border-slate-100 shadow-md mb-4 bg-slate-100">
+        <div class="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-slate-100 shadow-md mb-3 bg-slate-100 shrink-0">
           <img id="modal-img" src="" alt="" referrerpolicy="no-referrer" class="w-full h-full object-cover" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' fill=\'%2394a3b8\' viewBox=\'0 0 24 24\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
         </div>
 
-        <h3 id="modal-name" class="text-xl font-black text-slate-900 leading-tight mb-2">Student Name</h3>
-        <div id="modal-roll-pill" class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-mono font-bold mb-5">
+        <h3 id="modal-name" class="text-lg sm:text-xl font-black text-slate-900 leading-tight mb-1.5 px-2">Student Name</h3>
+        <div id="modal-roll-pill" class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-mono font-bold mb-4">
           Roll: <span id="modal-roll-badge">1262701001</span>
         </div>
 
-        <div class="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-left space-y-3 mb-4 text-sm">
-          <div class="flex justify-between items-center pb-2.5 border-b border-slate-200/60">
+        <div class="w-full bg-slate-50 border border-slate-100 rounded-2xl p-3.5 sm:p-4 text-left space-y-2.5 mb-3.5 text-xs sm:text-sm">
+          <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
             <span class="text-slate-500 font-semibold">Roll Number</span>
-            <span id="modal-roll" class="font-bold text-indigo-700 font-mono text-base">1262701001</span>
+            <span id="modal-roll" class="font-bold text-indigo-700 font-mono text-sm sm:text-base">1262701001</span>
           </div>
-          <div class="flex justify-between items-center pb-2.5 border-b border-slate-200/60">
+          <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
             <span class="text-slate-500 font-semibold">Academic Session</span>
             <span id="modal-session" class="font-bold text-slate-800">2026-2027</span>
           </div>
@@ -464,10 +461,10 @@
         </div>
 
         <!-- In Front / After Navigation Buttons -->
-        <div class="flex items-center justify-between gap-2 w-full mb-3">
+        <div class="flex items-center justify-between gap-2 w-full mb-2.5">
           <button
             id="modal-prev-student"
-            class="flex-1 py-2.5 px-3 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
+            class="flex-1 py-2.5 px-2.5 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-40 disabled:pointer-events-none touch-manipulation"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="15 18 9 12 15 6"></polyline>
@@ -476,7 +473,7 @@
           </button>
           <button
             id="modal-next-student"
-            class="flex-1 py-2.5 px-3 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
+            class="flex-1 py-2.5 px-2.5 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-40 disabled:pointer-events-none touch-manipulation"
           >
             <span>After (Next)</span>
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -488,9 +485,9 @@
         <div class="w-full">
           <button
             id="modal-copy-btn"
-            class="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+            class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer touch-manipulation"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>

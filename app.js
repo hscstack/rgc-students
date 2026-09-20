@@ -763,19 +763,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     pageNumbersContainer.innerHTML = '';
 
-    let startPage = Math.max(1, currentPage - 2);
-    let endPage = Math.min(totalPages, startPage + 4);
+    const isMobile = window.innerWidth < 640;
+    const windowSize = isMobile ? 3 : 5;
+    const half = Math.floor(windowSize / 2);
 
-    if (endPage - startPage < 4) {
-      startPage = Math.max(1, endPage - 4);
+    let startPage = Math.max(1, currentPage - half);
+    let endPage = Math.min(totalPages, startPage + windowSize - 1);
+
+    if (endPage - startPage < windowSize - 1) {
+      startPage = Math.max(1, endPage - windowSize + 1);
     }
 
     for (let i = startPage; i <= endPage; i++) {
-      const btn = document.createElement('div');
-      btn.className = `w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl cursor-pointer font-bold shrink-0 transition-all ${
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl cursor-pointer text-xs sm:text-sm font-bold shrink-0 transition-all touch-manipulation ${
         currentPage === i
-          ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
-          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+          ? 'bg-slate-900 text-white shadow-xs'
+          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200'
       }`;
       btn.textContent = i;
       btn.addEventListener('click', () => {
