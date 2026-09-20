@@ -1,0 +1,44 @@
+name: Auto-fetch Latest Students
+
+on:
+  schedule:
+    # Runs automatically every hour (UTC). You can change this cron expression if needed.
+    - cron: '0 * * * *'
+  workflow_dispatch: # Allows manual trigger from the GitHub Actions tab
+
+jobs:
+  fetch-and-sync:
+    name: Fetch & Sync Students
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Grants permissions to commit and push changes back to the repo
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run student fetcher
+        env:
+          PHPSESSID: ${{ secrets.PHPSESSID }}
+        run: |
+          python fetch_latest.py --no-push
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add students.json students_data.js
+          if ! git diff --cached --quiet; then
+            git commit -m "data(update): auto-sync latest student records [skip ci]"
+            git push origin main
+            echo "Successfully committed and pushed new student data."
+          else
+            echo "No new student records found. Everything is up to date."
+          fi
