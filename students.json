@@ -6394,5 +6394,45 @@
         "SSC_GPA": 5.0,
         "Previous_School": "Samir Uddin School and College, Nilphamari",
         "SSC_Roll": "212614"
+    },
+    {
+        "Roll": "1262701535",
+        "Name": "ADNEEN AL MUHITH",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609202127116aaffb4fa98fd.jpg"
+    },
+    {
+        "Roll": "1262701536",
+        "Name": "MD. TAHIR ABRAR TAHI",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609202134116aaffcf38bce6.jpg"
+    },
+    {
+        "Roll": "1262701537",
+        "Name": "MUNIBUR RAHMAN MUNIB",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609201118086aaf6c9064c36.jpg"
+    },
+    {
+        "Roll": "1262701538",
+        "Name": "MD. HEDAITUL HASAN SOYAD",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609202131436aaffc5f834ef.jpg"
+    },
+    {
+        "Roll": "1262701539",
+        "Name": "MD AL RAHAT",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609202110146aaff7569cf6b.jpg"
     }
 ]
