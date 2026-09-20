@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchForm = document.getElementById('search-form');
   const searchInput = document.getElementById('search-input');
   const searchClearBtn = document.getElementById('search-clear-btn');
+  const sectionSelect = document.getElementById('section-select');
   const sortSelect = document.getElementById('sort-select');
   const visibleCount = document.getElementById('visible-count');
   const totalCount = document.getElementById('total-count');
@@ -28,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalRollBadge = document.getElementById('modal-roll-badge');
   const modalSl = document.getElementById('modal-sl');
   const modalRoll = document.getElementById('modal-roll');
+  const modalSection = document.getElementById('modal-section');
   const modalDept = document.getElementById('modal-dept');
   const modalSession = document.getElementById('modal-session');
   const modalSscSection = document.getElementById('modal-ssc-section');
@@ -87,6 +89,31 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentPage = 1;
   let itemsPerPage = 25;
   let selectedStudent = null;
+  let selectedSection = 'all';
+
+  // Section calculation logic: 190 students per section (A: 1-190, B: 191-380, C: 381-570, D: 571-750)
+  function getPossibleSection(indexNumber) {
+    if (!indexNumber || indexNumber < 1) return 'A';
+    if (indexNumber <= 190) return 'A';
+    if (indexNumber <= 380) return 'B';
+    if (indexNumber <= 570) return 'C';
+    return 'D';
+  }
+
+  function getSectionBadgeClass(section) {
+    switch (section) {
+      case 'A':
+        return 'bg-emerald-50 text-emerald-700 border border-emerald-200/80';
+      case 'B':
+        return 'bg-blue-50 text-blue-700 border border-blue-200/80';
+      case 'C':
+        return 'bg-purple-50 text-purple-700 border border-purple-200/80';
+      case 'D':
+        return 'bg-amber-50 text-amber-700 border border-amber-200/80';
+      default:
+        return 'bg-slate-100 text-slate-700 border border-slate-200';
+    }
+  }
 
   // Search UI Mode State: 'all' | 'multi_select' | 'sequence_context'
   let currentViewMode = 'all';
@@ -163,11 +190,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return (a.Roll || '').localeCompare(b.Roll || '');
       });
 
-      rawData = sortedData.map((item, idx) => ({
-        ...item,
-        indexNumber: idx + 1,
-        searchIndex: `${item.Roll || ''} ${item.Name || ''}`.toLowerCase()
-      }));
+      rawData = sortedData.map((item, idx) => {
+        const indexNumber = idx + 1;
+        const section = getPossibleSection(indexNumber);
+        return {
+          ...item,
+          indexNumber,
+          section,
+          searchIndex: `${item.Roll || ''} ${item.Name || ''} section ${section} sec ${section}`.toLowerCase()
+        };
+      });
 
       totalCount.textContent = rawData.length;
       if (statStudents) statStudents.textContent = rawData.length;
@@ -216,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resetToAllStudents();
       });
 
-      // Sort select auth check & handlers
+      // Guard select auth check
       function guardSelectAuth(e, selectEl, defaultVal) {
         if (isLoggedIn === false) {
           e.preventDefault();
@@ -228,6 +260,23 @@ document.addEventListener('DOMContentLoaded', () => {
         return false;
       }
 
+      // Section select auth check & handlers
+      if (sectionSelect) {
+        sectionSelect.addEventListener('mousedown', (e) => guardSelectAuth(e, sectionSelect, 'all'));
+        sectionSelect.addEventListener('click', (e) => guardSelectAuth(e, sectionSelect, 'all'));
+        sectionSelect.addEventListener('focus', (e) => guardSelectAuth(e, sectionSelect, 'all'));
+        sectionSelect.addEventListener('change', (e) => {
+          if (guardSelectAuth(e, sectionSelect, 'all')) return;
+          selectedSection = sectionSelect.value;
+          if (searchInput.value.trim()) {
+            executeSearch();
+          } else {
+            resetToAllStudents();
+          }
+        });
+      }
+
+      // Sort select auth check & handlers
       sortSelect.addEventListener('mousedown', (e) => guardSelectAuth(e, sortSelect, 'roll-asc'));
       sortSelect.addEventListener('click', (e) => guardSelectAuth(e, sortSelect, 'roll-asc'));
       sortSelect.addEventListener('focus', (e) => guardSelectAuth(e, sortSelect, 'roll-asc'));
@@ -427,7 +476,12 @@ document.addEventListener('DOMContentLoaded', () => {
       searchContextBanner.innerHTML = '';
     }
 
-    filteredData = rawData.map(s => ({
+    let baseList = rawData;
+    if (selectedSection !== 'all') {
+      baseList = rawData.filter(s => s.section === selectedSection);
+    }
+
+    filteredData = baseList.map(s => ({
       ...s,
       isDirectMatch: false,
       matchContext: null
@@ -460,8 +514,13 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    let sourceList = rawData;
+    if (selectedSection !== 'all') {
+      sourceList = rawData.filter(s => s.section === selectedSection);
+    }
+
     // Find all matches
-    const matches = rawData.filter(s => s.searchIndex.includes(q));
+    const matches = sourceList.filter(s => s.searchIndex.includes(q));
 
     if (matches.length === 0) {
       currentViewMode = 'empty';
@@ -681,9 +740,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 </span>
                 ${badgeHtml}
               </div>
-              <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
                 <span class="${rollBadgeMobileClass}">
                   ${highlightedRoll}
+                </span>
+                <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold ${getSectionBadgeClass(student.section)}">
+                  Sec ${student.section}
                 </span>
               </div>
             </div>
@@ -700,7 +762,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="w-12 text-center shrink-0 font-mono text-xs font-bold text-slate-400">
             ${student.indexNumber}
           </div>
-          <div class="w-36 flex justify-center shrink-0">
+          <div class="w-32 flex justify-center shrink-0">
             <div class="${rollBadgeClass}">
               ${highlightedRoll}
             </div>
@@ -715,6 +777,11 @@ document.addEventListener('DOMContentLoaded', () => {
               ${highlightedName}
             </div>
             ${badgeHtml}
+          </div>
+          <div class="w-24 flex justify-center shrink-0">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-bold ${getSectionBadgeClass(student.section)}">
+              Sec ${student.section}
+            </span>
           </div>
           ${actionButtonHtml}
         </div>
@@ -789,6 +856,10 @@ document.addEventListener('DOMContentLoaded', () => {
     modalRollBadge.textContent = student.Roll || '-';
     if (modalSl) modalSl.textContent = student.indexNumber || '-';
     modalRoll.textContent = student.Roll || '-';
+    if (modalSection) {
+      modalSection.textContent = `Section ${student.section || 'A'}`;
+      modalSection.className = `font-bold text-xs sm:text-sm font-mono px-2.5 py-0.5 rounded-lg ${getSectionBadgeClass(student.section)}`;
+    }
     if (modalDept) {
       modalDept.textContent = student.Department || 'HSC - Science';
     }

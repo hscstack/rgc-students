@@ -239,17 +239,33 @@
             <span class="hidden xs:inline">students</span>
           </div>
 
-          <div class="flex items-center gap-1.5">
-            <label for="sort-select" class="hidden sm:inline-block font-medium text-slate-500">Sort:</label>
-            <select
-              id="sort-select"
-              class="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] sm:text-xs font-bold text-slate-700 shadow-2xs focus:border-teal-500 focus:outline-none cursor-pointer"
-            >
-              <option value="roll-asc">Roll (Ascending)</option>
-              <option value="roll-desc">Roll (Descending)</option>
-              <option value="name-asc">Name (A → Z)</option>
-              <option value="name-desc">Name (Z → A)</option>
-            </select>
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <div class="flex items-center gap-1">
+              <label for="section-select" class="hidden sm:inline-block font-medium text-slate-500">Section:</label>
+              <select
+                id="section-select"
+                class="rounded-xl border border-slate-200 bg-white px-2 sm:px-2.5 py-1.5 text-[11px] sm:text-xs font-bold text-slate-700 shadow-2xs focus:border-teal-500 focus:outline-none cursor-pointer"
+              >
+                <option value="all">All Sections</option>
+                <option value="A">Section A (1–190)</option>
+                <option value="B">Section B (191–380)</option>
+                <option value="C">Section C (381–570)</option>
+                <option value="D">Section D (571–750)</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-1">
+              <label for="sort-select" class="hidden sm:inline-block font-medium text-slate-500">Sort:</label>
+              <select
+                id="sort-select"
+                class="rounded-xl border border-slate-200 bg-white px-2 sm:px-2.5 py-1.5 text-[11px] sm:text-xs font-bold text-slate-700 shadow-2xs focus:border-teal-500 focus:outline-none cursor-pointer"
+              >
+                <option value="roll-asc">Roll (Ascending)</option>
+                <option value="roll-desc">Roll (Descending)</option>
+                <option value="name-asc">Name (A → Z)</option>
+                <option value="name-desc">Name (Z → A)</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -299,10 +315,11 @@
         <!-- Desktop Table Header -->
         <div class="hidden sm:flex p-3.5 bg-white/60 border border-slate-200 rounded-xl text-xs font-bold text-slate-500 uppercase tracking-wider items-center">
           <div class="w-12 text-center shrink-0">Sl.</div>
-          <div class="w-36 text-center shrink-0">Roll Number</div>
+          <div class="w-32 text-center shrink-0">Roll Number</div>
           <div class="w-12 text-center shrink-0 ml-1">Photo</div>
           <div class="flex-1 px-4">Student Name</div>
-          <div class="w-28 text-right shrink-0 pr-2">Action</div>
+          <div class="w-24 text-center shrink-0">Section</div>
+          <div class="w-20 text-right shrink-0 pr-2">Action</div>
         </div>
 
         <!-- Leaderboard Body -->
@@ -396,6 +413,13 @@
           <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
             <span class="text-slate-500 font-semibold">Roll Number</span>
             <span id="modal-roll" class="font-bold text-indigo-700 font-mono text-sm sm:text-base">1262701001</span>
+          </div>
+          <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
+            <div>
+              <span class="text-slate-500 font-semibold block">Possible Section</span>
+              <span class="text-[10px] text-slate-400 font-medium block">(190 students / sec)</span>
+            </div>
+            <span id="modal-section" class="font-bold text-xs sm:text-sm font-mono px-2.5 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/80">Section A</span>
           </div>
           <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
             <span class="text-slate-500 font-semibold">Department</span>
