@@ -252,14 +252,7 @@ def run_incremental_fetch(
     print(f"[✓] Total recorded students: {len(students)}")
     print(f"[✓] Updated {json_file} and {js_file}")
 
-    if new_found_count > 0:
-        print("\n[*] Running SSC data enrichment on latest student dataset...")
-        try:
-            from enrich_ssc_data import enrich_all_students
-            enrich_all_students(save=True)
-            print("[✓] SSC data enrichment finished successfully.")
-        except Exception as e:
-            print(f"[-] SSC enrichment warning: {e}")
+
 
     # Auto commit and push if new students were found
     if new_found_count > 0 and auto_push:

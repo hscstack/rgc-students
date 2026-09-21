@@ -32,11 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalSection = document.getElementById('modal-section');
   const modalDept = document.getElementById('modal-dept');
   const modalSession = document.getElementById('modal-session');
-  const modalSscSection = document.getElementById('modal-ssc-section');
-  const modalSscMarks = document.getElementById('modal-ssc-marks');
-  const modalSscGpa = document.getElementById('modal-ssc-gpa');
   const modalSchool = document.getElementById('modal-school');
-  const modalSscUnlinked = document.getElementById('modal-ssc-unlinked');
   const modalCopyBtn = document.getElementById('modal-copy-btn');
 
   // Search Context Banner
@@ -891,25 +887,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     modalSession.textContent = student.Session || '2026-2027';
 
-    // Populate SSC Data
-    const hasSscData = student.SSC_Marks !== null && student.SSC_Marks !== undefined && student.SSC_Marks !== '';
-    if (hasSscData) {
-      if (modalSscSection) modalSscSection.classList.remove('hidden');
-      if (modalSscUnlinked) modalSscUnlinked.classList.add('hidden');
-      
-      if (modalSscMarks) {
-        modalSscMarks.textContent = student.SSC_Marks;
+    // Populate Previous School
+    if (modalSchool) {
+      const school = (student.Previous_School || '').trim();
+      if (school) {
+        modalSchool.textContent = school;
+        modalSchool.className = 'font-bold text-slate-800 text-right leading-snug text-xs sm:text-sm';
+      } else {
+        modalSchool.textContent = 'Not Found';
+        modalSchool.className = 'font-semibold text-slate-400 text-right leading-snug text-xs sm:text-sm';
       }
-      if (modalSscGpa) {
-        const gpaVal = typeof student.SSC_GPA === 'number' ? student.SSC_GPA.toFixed(2) : (student.SSC_GPA || '5.00');
-        modalSscGpa.textContent = `GPA ${gpaVal}`;
-      }
-      if (modalSchool) {
-        modalSchool.textContent = student.Previous_School || 'Dinajpur Board School';
-      }
-    } else {
-      if (modalSscSection) modalSscSection.classList.add('hidden');
-      if (modalSscUnlinked) modalSscUnlinked.classList.remove('hidden');
     }
 
     studentModal.classList.remove('hidden');
