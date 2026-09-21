@@ -54,50 +54,7 @@ def fetch_student_info(roll_number: str) -> dict:
         if match:
             info[key] = match.group(1).strip()
 
-    # Extract image src
-    img_match = re.search(r'id=["\']studentImg["\'][^>]*src=["\']([^"\']+)["\']', html_content)
-    if not img_match:
-        img_match = re.search(r'src=["\']([^"\']+)["\'][^>]*id=["\']studentImg["\']', html_content)
-
-    if img_match:
-        info["Image_URL"] = urllib.parse.urljoin(BASE_URL + "/", img_match.group(1))
-    else:
-        info["Image_URL"] = None
-
     return info
-
-def show_image(image_url: str):
-    try:
-        req = urllib.request.Request(image_url, headers=HEADERS)
-        with urllib.request.urlopen(req, timeout=15) as response:
-            img_data = response.read()
-
-        # Try using PIL if available
-        try:
-            from PIL import Image
-            img = Image.open(io.BytesIO(img_data))
-            img.show()
-            return
-        except ImportError:
-            pass
-
-        # Fallback to saving temporarily and opening with system default viewer
-        import tempfile
-        ext = os.path.splitext(image_url)[1] or ".png"
-        with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as temp_img:
-            temp_img.write(img_data)
-            temp_path = temp_img.name
-
-        if sys.platform.startswith("linux"):
-            subprocess.Popen(["xdg-open", temp_path])
-        elif sys.platform == "darwin":
-            subprocess.Popen(["open", temp_path])
-        elif sys.platform.startswith("win"):
-            os.startfile(temp_path)
-        print(f"[+] Image opened from temporary file: {temp_path}")
-
-    except Exception as e:
-        print(f"[-] Could not load image: {e}")
 
 def load_existing_data(file_path: str) -> list[dict]:
     if os.path.exists(file_path):

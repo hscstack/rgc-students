@@ -117,17 +117,6 @@ def fetch_student_record(roll_number: str, phpsessid: str) -> dict | None:
     if "Session" not in info or not info["Session"]:
         info["Session"] = "2026-2027"
 
-    # Extract image src
-    img_match = re.search(r'id=["\']studentImg["\'][^>]*src=["\']([^"\']+)["\']', html_content)
-    if not img_match:
-        img_match = re.search(r'src=["\']([^"\']+)["\'][^>]*id=["\']studentImg["\']', html_content)
-
-    if img_match and img_match.group(1).strip():
-        img_src = img_match.group(1).strip()
-        info["Image_URL"] = urllib.parse.urljoin(BASE_URL + "/", img_src)
-    else:
-        info["Image_URL"] = ""
-
     return info
 
 

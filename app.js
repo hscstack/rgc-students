@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const studentModal = document.getElementById('student-modal');
   const studentModalInner = document.getElementById('student-modal-inner');
   const studentModalClose = document.getElementById('student-modal-close');
-  const modalImg = document.getElementById('modal-img');
   const modalName = document.getElementById('modal-name');
   const modalRollBadge = document.getElementById('modal-roll-badge');
   const modalSl = document.getElementById('modal-sl');
@@ -748,13 +747,10 @@ document.addEventListener('DOMContentLoaded', () => {
       row.innerHTML = `
         <!-- Mobile View (visible block sm:hidden) -->
         <div class="flex sm:hidden items-center justify-between gap-2.5 w-full">
-          <div class="flex items-center gap-2 min-w-0 flex-1">
+          <div class="flex items-center gap-2.5 min-w-0 flex-1">
             <span class="font-mono text-xs font-bold text-slate-400 w-7 text-center shrink-0">
               #${student.indexNumber}
             </span>
-            <div class="relative w-10 h-10 rounded-xl border border-slate-200 shrink-0 shadow-2xs overflow-hidden bg-slate-100">
-              <img src="${escapeHTML(student.Image_URL)}" alt="" referrerpolicy="no-referrer" class="w-full h-full object-cover" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'40\\' height=\\'40\\' fill=\\'%2394a3b8\\' viewBox=\\'0 0 24 24\\'><path d=\\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\\'/></svg>'">
-            </div>
             <div class="flex flex-col min-w-0 flex-1 gap-0.5">
               <div class="flex items-center gap-1.5 flex-wrap">
                 <span class="${nameClass}">
@@ -787,11 +783,6 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="w-32 flex justify-center shrink-0">
             <div class="${rollBadgeClass}">
               ${highlightedRoll}
-            </div>
-          </div>
-          <div class="w-12 flex justify-center shrink-0 ml-1">
-            <div class="w-10 h-10 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shadow-2xs">
-              <img src="${escapeHTML(student.Image_URL)}" alt="" referrerpolicy="no-referrer" class="w-full h-full object-cover" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'40\\' height=\\'40\\' fill=\\'%2394a3b8\\' viewBox=\\'0 0 24 24\\'><path d=\\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\\'/></svg>'">
             </div>
           </div>
           <div class="flex-1 px-4 min-w-0 flex items-center gap-3">
@@ -873,7 +864,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Modals
   function openStudentModal(student) {
     selectedStudent = student;
-    modalImg.src = student.Image_URL || '';
     modalName.textContent = student.Name || 'Student';
     modalRollBadge.textContent = student.Roll || '-';
     if (modalSl) modalSl.textContent = student.indexNumber || '-';
