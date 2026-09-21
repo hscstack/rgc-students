@@ -24,6 +24,16 @@ HEADERS = {
     "Origin": BASE_URL,
 }
 
+from fetch_latest import normalize_name, load_dinajpur_school_map
+
+SCHOOL_MAP = None
+
+def get_school_map():
+    global SCHOOL_MAP
+    if SCHOOL_MAP is None:
+        SCHOOL_MAP = load_dinajpur_school_map()
+    return SCHOOL_MAP
+
 def fetch_student_info(roll_number: str) -> dict:
     payload = urllib.parse.urlencode({
         "rootData": roll_number.strip(),
@@ -53,6 +63,11 @@ def fetch_student_info(roll_number: str) -> dict:
         match = re.search(pattern, html_content, re.IGNORECASE)
         if match:
             info[key] = match.group(1).strip()
+
+    # Previous School lookup
+    student_name = info.get("Name", "")
+    s_map = get_school_map()
+    info["Previous_School"] = s_map.get(normalize_name(student_name), "") if s_map else ""
 
     return info
 
