@@ -6970,5 +6970,53 @@
         "SSC_GPA": 5.0,
         "Previous_School": "Khamar Dashalia Adarsha High School, Gaibandha",
         "SSC_Roll": "201711"
+    },
+    {
+        "Roll": "1262701583",
+        "Name": "MOST. MOYAZZEMA KHATUN",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609211048146ab0b70e17e7f.jpg"
+    },
+    {
+        "Roll": "1262701584",
+        "Name": "MOST. RAYHATUL JANNAT RISHA",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609211054316ab0b887f03f5.jpg"
+    },
+    {
+        "Roll": "1262701585",
+        "Name": "MD. FUADUL HASAN REYAD",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609211106026ab0bb3a02fbf.jpg"
+    },
+    {
+        "Roll": "1262701586",
+        "Name": "MD. ABDULLAH AL RIYAD",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609211106046ab0bb3c18e52.jpg"
+    },
+    {
+        "Roll": "1262701587",
+        "Name": "MST. JAKIA SULTANA JOTI",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609211108526ab0bbe4e3258.jpeg"
+    },
+    {
+        "Roll": "1262701588",
+        "Name": "MD. ABRAR JAHIN AHMED",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609211112166ab0bcb0ac164.jpeg"
     }
 ]
