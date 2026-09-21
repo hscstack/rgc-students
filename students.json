@@ -6874,5 +6874,101 @@
         "SSC_GPA": 5.0,
         "Previous_School": "Lalmonirhat Govt. Girls' High School, Lalmonirhat",
         "SSC_Roll": "228706"
+    },
+    {
+        "Roll": "1262701575",
+        "Name": "MD. ARAF ARE RAFI",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609211006296ab0ad45bae59.png",
+        "SSC_Marks": 1024,
+        "SSC_GPA": 5.0,
+        "Previous_School": "Ideal Residential Model School, Dinajpur",
+        "SSC_Roll": "242857"
+    },
+    {
+        "Roll": "1262701576",
+        "Name": "MUNTAZAR AL ZAIDI",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609202217406ab00724b96b7.jpeg",
+        "SSC_Marks": 1002,
+        "SSC_GPA": 5.0,
+        "Previous_School": "Bir Uttam Shaeed Samad High School and College, Rangpur",
+        "SSC_Roll": "183310"
+    },
+    {
+        "Roll": "1262701577",
+        "Name": "MST. FARIHA KAWSAR KONA",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609210959336ab0aba536d5f.jpg",
+        "SSC_Marks": 1001,
+        "SSC_GPA": 5.0,
+        "Previous_School": "Gangachara Govt. Model High School, Rangpur",
+        "SSC_Roll": "191843"
+    },
+    {
+        "Roll": "1262701578",
+        "Name": "TONMOY KUMER RAY",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609211015006ab0af44e9ed6.jpeg",
+        "SSC_Marks": 1011,
+        "SSC_GPA": 5.0,
+        "Previous_School": "Ideal Residential Model School, Dinajpur",
+        "SSC_Roll": "242983"
+    },
+    {
+        "Roll": "1262701579",
+        "Name": "MALOY CHANDRO RAY",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609211031136ab0b31172ee2.jpg",
+        "SSC_Marks": 1019,
+        "SSC_GPA": 5.0,
+        "Previous_School": "Kaimari High School, Nilphamari",
+        "SSC_Roll": "216005"
+    },
+    {
+        "Roll": "1262701580",
+        "Name": "MOST. SHAHI FARJANA",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609211023196ab0b137104c2.jpg",
+        "SSC_Marks": 1008,
+        "SSC_GPA": 5.0,
+        "Previous_School": "Bangalabazar High School, Rangpur",
+        "SSC_Roll": "197006"
+    },
+    {
+        "Roll": "1262701581",
+        "Name": "MST. TAUZIAT FARIA AITIZZO",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609211043246ab0b5ecb57ae.jpg",
+        "SSC_Marks": 1006,
+        "SSC_GPA": 5.0,
+        "Previous_School": "Buzruk Sontoshpur Adarsha High School, Rangpur",
+        "SSC_Roll": "194172"
+    },
+    {
+        "Roll": "1262701582",
+        "Name": "MD. JAHID HASAN TANJIL",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609211004306ab0acceb2041.jpg",
+        "SSC_Marks": 1010,
+        "SSC_GPA": 5.0,
+        "Previous_School": "Khamar Dashalia Adarsha High School, Gaibandha",
+        "SSC_Roll": "201711"
     }
 ]
