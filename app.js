@@ -61,6 +61,377 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const AUTH_STORAGE_KEY = 'hscstack_auth_user';
 
+  // Theme system — mirrors platform resources/js/lib/useDarkMode.ts:
+  // same 'theme' localStorage key, same light/dark/system cycle.
+  // Per-origin storage means this won't sync with hscstack.site;
+  // both sides just resolve 'system' from the OS preference.
+  var currentTheme = 'system';
+  try {
+    var storedTheme = localStorage.getItem('theme');
+    if (storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'system') {
+      currentTheme = storedTheme;
+    }
+  } catch (e) {}
+
+  function resolveDark(t) {
+    if (t === 'system') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return t === 'dark';
+  }
+
+  function refreshThemeIcon() {
+    var icon = document.getElementById('rail-theme-icon') || document.getElementById('theme-toggle-icon');
+    if (icon) {
+      icon.textContent = currentTheme === 'dark' ? 'dark_mode' : currentTheme === 'light' ? 'light_mode' : 'computer';
+    }
+    var btn = document.getElementById('rail-theme-toggle');
+    if (btn) btn.title = 'Current theme: ' + currentTheme + '. Click to switch.';
+    refreshAppearanceSegmented();
+  }
+
+  // Platform parity: the Light/Dark/System segmented control in the rail
+  // footer + drawer pinned footer highlights the active theme.
+  var SEG_ACTIVE = ['bg-white', 'text-slate-900', 'shadow-sm', 'dark:bg-slate-700', 'dark:text-slate-100'];
+  var SEG_IDLE = ['text-slate-500', 'hover:text-slate-800', 'dark:text-slate-400', 'dark:hover:text-slate-200'];
+
+  function refreshAppearanceSegmented() {
+    document.querySelectorAll('[data-set-theme]').forEach(function (el) {
+      var isActive = el.getAttribute('data-set-theme') === currentTheme;
+      SEG_ACTIVE.forEach(function (c) { el.classList.toggle(c, isActive); });
+      SEG_IDLE.forEach(function (c) { el.classList.toggle(c, !isActive); });
+    });
+  }
+
+  function applyTheme() {
+    var dark = resolveDark(currentTheme);
+    document.documentElement.classList.toggle('dark', dark);
+    document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+    var themeColor = dark ? '#030712' : '#f8fafc';
+    var meta = document.querySelector('meta[name="theme-color"]:not([media])');
+    if (meta) meta.setAttribute('content', themeColor);
+    var navButton = document.querySelector('meta[name="msapplication-navbutton-color"]');
+    if (navButton) navButton.setAttribute('content', themeColor);
+    try {
+      localStorage.setItem('theme', currentTheme);
+    } catch (e) {}
+    refreshThemeIcon();
+  }
+
+  function cycleTheme() {
+    var order = ['system', 'light', 'dark'];
+    currentTheme = order[(order.indexOf(currentTheme) + 1) % order.length];
+    applyTheme();
+  }
+
+  applyTheme();
+
+  try {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
+      if (currentTheme === 'system') applyTheme();
+    });
+    window.addEventListener('storage', function (e) {
+      if (e.key === 'theme' && (e.newValue === 'light' || e.newValue === 'dark' || e.newValue === 'system')) {
+        currentTheme = e.newValue;
+        applyTheme();
+      }
+    });
+  } catch (e) {}
+
+  /* ================================================================
+   * Platform shell — vanilla port of resources/js/components/
+   * navigation/Navigation.tsx (SiteRail/SiteDrawer/SiteBottomNav)
+   * plus lib/navigation.ts + lib/useBottomNavCustomization.ts.
+   *
+   * All links are absolute (https://hscstack.site/...) so the rail,
+   * drawer and bottom bar behave like the platform itself.
+   * Active states resolve against VIRTUAL_PATH: this directory is
+   * reached via More From Us (/projects), so that row renders
+   * active — the user feels they never left the site.
+   * ================================================================ */
+  var PLATFORM_ORIGIN = 'https://hscstack.site';
+  var VIRTUAL_PATH = '/projects/rgc-students';
+  var BOTTOM_NAV_KEY = 'hscstack:bottom-nav:v1';
+  var RAIL_KEY = 'rail_collapsed';
+
+  var NAV_ITEMS = [
+    { label: 'Home', href: '/', icon: 'home' },
+    { label: 'Blogs', href: '/blogs', icon: 'menu_book' },
+    { label: 'Forum', href: '/forum', icon: 'forum' },
+    { label: 'Chat', railLabel: 'Global Chat', href: '/chat', icon: 'chat' },
+    { label: 'AI', href: '/ai', icon: 'smart_toy' },
+    { label: 'Support Center', collapsedLabel: 'Support', href: '/support', icon: 'help' },
+    { label: 'Donate', href: '/donate', icon: 'volunteer_activism' }
+  ];
+  var DEFAULT_MIDDLE_HREFS = ['/forum', '/chat', '/blogs'];
+
+  function absUrl(href) {
+    return PLATFORM_ORIGIN + href;
+  }
+
+  // Platform preferredHomeHref: users with an SSC preference land on /ssc.
+  function homeUrl() {
+    try {
+      if (localStorage.getItem('preferred_course') === 'ssc') return PLATFORM_ORIGIN + '/ssc';
+    } catch (e) {}
+    return PLATFORM_ORIGIN;
+  }
+
+  function syncHomeLinks() {
+    var url = homeUrl();
+    document.querySelectorAll('[data-home-link]').forEach(function (a) {
+      a.setAttribute('href', url);
+    });
+  }
+
+  function loadBottomMiddles() {
+    try {
+      var raw = localStorage.getItem(BOTTOM_NAV_KEY);
+      if (!raw) return DEFAULT_MIDDLE_HREFS.slice();
+      var parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return DEFAULT_MIDDLE_HREFS.slice();
+      var pool = NAV_ITEMS.filter(function (i) { return i.href !== '/'; }).map(function (i) { return i.href; });
+      var deduped = parsed.filter(function (h) { return pool.indexOf(h) !== -1; }).filter(function (h, idx, arr) { return arr.indexOf(h) === idx; });
+      if (deduped.length < 1 || deduped.length > 3) return DEFAULT_MIDDLE_HREFS.slice();
+      return deduped;
+    } catch (e) {
+      return DEFAULT_MIDDLE_HREFS.slice();
+    }
+  }
+
+  function findNav(href) {
+    for (var i = 0; i < NAV_ITEMS.length; i++) {
+      if (NAV_ITEMS[i].href === href) return NAV_ITEMS[i];
+    }
+    return null;
+  }
+
+  function accountItem() {
+    if (isLoggedIn && currentUser) {
+      return {
+        label: 'Account',
+        href: currentUser.username ? '/u/' + encodeURIComponent(currentUser.username) : '/profile',
+        icon: 'person'
+      };
+    }
+    return { label: 'Login', href: '/login', icon: 'login' };
+  }
+
+  function renderBottomNav() {
+    var host = document.getElementById('bottom-nav-items');
+    if (!host) return;
+    var items = [{ label: 'Home', href: '/', icon: 'home' }]
+      .concat(loadBottomMiddles().map(findNav).filter(Boolean))
+      .concat([accountItem()]);
+    host.innerHTML = items.map(function (item) {
+      var active = VIRTUAL_PATH.indexOf(item.href) === 0 && item.href !== '/';
+      return '' +
+        '<a href="' + absUrl(item.href) + '"' + (item.href === '/' ? ' data-home-link' : '') + ' class="flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-2 py-2 transition-all duration-150 ease-out ' + (active ? 'text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200') + '">' +
+        '<span class="material-symbols-rounded shrink-0 transition-transform duration-150 text-[26px] ' + (active ? 'scale-[1.02] text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400') + '">' + item.icon + '</span>' +
+        '<span class="text-[10px] leading-none tracking-wide antialiased ' + (active ? 'font-bold' : 'font-medium') + '">' + escapeHTML(item.label) + '</span>' +
+        '</a>';
+    }).join('');
+    syncHomeLinks();
+  }
+
+  function renderDrawerMore() {
+    var host = document.getElementById('drawer-more');
+    if (!host) return;
+    var used = {};
+    loadBottomMiddles().forEach(function (h) { used[h] = true; });
+    var items = NAV_ITEMS.filter(function (i) { return i.href !== '/' && !used[i.href]; });
+    if (items.length === 0) {
+      host.innerHTML = '<p class="px-3 py-2 text-xs text-slate-500 dark:text-gray-400">All items are in your bottom bar. Customize in Profile → Bottom navigation.</p>';
+      return;
+    }
+    host.innerHTML = items.map(function (item) {
+      var active = VIRTUAL_PATH.indexOf(item.href) === 0;
+      return '' +
+        '<a href="' + absUrl(item.href) + '" data-drawer-link class="group flex items-center gap-2.5 rounded-[10px] px-2.5 py-2 text-[13px] font-medium tracking-tight transition-all duration-150 ease-out ' + (active ? 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200/60 dark:bg-indigo-500/10 dark:text-indigo-200 dark:ring-indigo-500/20' : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-100') + '">' +
+        '<span class="material-symbols-rounded shrink-0 text-[22px] transition-colors duration-150 ' + (active ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-500 group-hover:text-slate-700 dark:text-slate-500 dark:group-hover:text-slate-300') + '">' + item.icon + '</span>' +
+        '<span class="truncate">' + escapeHTML(item.label) + '</span>' +
+        (active ? '<span class="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-600 dark:bg-indigo-400"></span>' : '') +
+        '</a>';
+    }).join('');
+  }
+
+  /* ---- Rail collapse (same `rail_collapsed` key as the platform) ---- */
+  function setRailCollapsed(collapsed) {
+    var rail = document.getElementById('site-rail');
+    if (!rail) return;
+    rail.classList.toggle('w-[72px]', collapsed);
+    rail.classList.toggle('w-[280px]', !collapsed);
+    var pairs = [
+      ['rail-nav-collapsed', true], ['rail-nav-expanded', false],
+      ['rail-footer-collapsed', true], ['rail-footer-expanded', false]
+    ];
+    pairs.forEach(function (pair) {
+      var el = document.getElementById(pair[0]);
+      if (!el) return;
+      var showWhenCollapsed = pair[1];
+      var show = collapsed === showWhenCollapsed;
+      el.classList.toggle('hidden', !show);
+      el.classList.toggle('flex', show && showWhenCollapsed);
+    });
+    var logoWrap = document.getElementById('rail-logo-wrap');
+    if (logoWrap) {
+      logoWrap.classList.toggle('w-0', collapsed);
+      logoWrap.classList.toggle('opacity-0', collapsed);
+      logoWrap.classList.toggle('pointer-events-none', collapsed);
+      logoWrap.classList.toggle('w-[200px]', !collapsed);
+      logoWrap.classList.toggle('opacity-100', !collapsed);
+    }
+    var toggle = document.getElementById('rail-toggle');
+    if (toggle) toggle.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+    try {
+      localStorage.setItem(RAIL_KEY, String(collapsed));
+    } catch (e) {}
+  }
+
+  function initRail() {
+    var collapsed = false;
+    try {
+      collapsed = localStorage.getItem(RAIL_KEY) === 'true';
+    } catch (e) {}
+    setRailCollapsed(collapsed);
+    var toggle = document.getElementById('rail-toggle');
+    if (toggle) {
+      toggle.addEventListener('click', function () {
+        var rail = document.getElementById('site-rail');
+        setRailCollapsed(!rail.classList.contains('w-[72px]'));
+      });
+    }
+    document.querySelectorAll('[data-set-theme]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var val = btn.getAttribute('data-set-theme');
+        if (val === 'light' || val === 'dark' || val === 'system') {
+          currentTheme = val;
+          applyTheme();
+        }
+      });
+    });
+    var cycle = document.getElementById('rail-theme-toggle');
+    if (cycle) cycle.addEventListener('click', cycleTheme);
+    refreshAppearanceSegmented();
+  }
+
+  /* ---- Drawer (focus trap + Escape + overlay + body lock, like useDialogA11y) ---- */
+  var drawerLastFocused = null;
+  var drawerKeyHandler = null;
+
+  function drawerFocusables() {
+    var panel = document.getElementById('drawer-panel');
+    if (!panel) return [];
+    return Array.from(panel.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'))
+      .filter(function (el) { return el.offsetParent !== null; });
+  }
+
+  function openDrawer() {
+    var root = document.getElementById('drawer-root');
+    var panel = document.getElementById('drawer-panel');
+    if (!root || !panel) return;
+    drawerLastFocused = document.activeElement;
+    root.classList.remove('hidden');
+    root.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        panel.classList.remove('-translate-x-full');
+      });
+    });
+    setTimeout(function () {
+      var closeBtn = document.getElementById('drawer-close');
+      if (closeBtn) closeBtn.focus();
+    }, 60);
+    drawerKeyHandler = function (e) {
+      if (e.key === 'Escape') {
+        closeDrawer();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      var items = drawerFocusables();
+      if (items.length === 0) return;
+      var first = items[0];
+      var last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', drawerKeyHandler);
+  }
+
+  function closeDrawer() {
+    var root = document.getElementById('drawer-root');
+    var panel = document.getElementById('drawer-panel');
+    if (!root || !panel || root.classList.contains('hidden')) return;
+    panel.classList.add('-translate-x-full');
+    document.body.style.overflow = '';
+    if (drawerKeyHandler) {
+      document.removeEventListener('keydown', drawerKeyHandler);
+      drawerKeyHandler = null;
+    }
+    // Match the platform's leave transition before unmounting.
+    setTimeout(function () {
+      root.classList.add('hidden');
+      root.classList.remove('flex');
+    }, 200);
+    if (drawerLastFocused && document.contains(drawerLastFocused) && drawerLastFocused instanceof HTMLElement) {
+      drawerLastFocused.focus();
+    }
+    drawerLastFocused = null;
+  }
+
+  function initDrawer() {
+    var openBtn = document.getElementById('drawer-open');
+    if (openBtn) openBtn.addEventListener('click', openDrawer);
+    var closeBtn = document.getElementById('drawer-close');
+    if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+    var overlay = document.getElementById('drawer-overlay');
+    if (overlay) overlay.addEventListener('click', closeDrawer);
+    document.querySelectorAll('[data-drawer-link]').forEach(function (a) {
+      a.addEventListener('click', closeDrawer);
+    });
+  }
+
+  /* ---- RGC is a web page, not an installable app: no manifest,
+     no beforeinstallprompt handling, no install buttons. ---- */
+
+  /* ---- Logout modal ---- */
+  function openLogoutModal() {
+    var modal = document.getElementById('logout-modal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLogoutModal() {
+    var modal = document.getElementById('logout-modal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = '';
+  }
+
+  function initLogoutModal() {
+    var c1 = document.getElementById('logout-modal-cancel');
+    if (c1) c1.addEventListener('click', closeLogoutModal);
+    var c2 = document.getElementById('logout-modal-cancel-x');
+    if (c2) c2.addEventListener('click', closeLogoutModal);
+    var ov = document.getElementById('logout-modal-overlay');
+    if (ov) ov.addEventListener('click', closeLogoutModal);
+    document.querySelectorAll('[data-logout-btn]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        closeDrawer();
+        openLogoutModal();
+      });
+    });
+  }
+
   // State
   let isLoggedIn = null;
   let currentUser = null;
@@ -103,15 +474,15 @@ document.addEventListener('DOMContentLoaded', () => {
   function getSectionBadgeClass(section) {
     switch (section) {
       case 'A':
-        return 'bg-emerald-50 text-emerald-700 border border-emerald-200/80';
+        return 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20';
       case 'B':
-        return 'bg-blue-50 text-blue-700 border border-blue-200/80';
+        return 'bg-blue-50 text-blue-700 border border-blue-200/80 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20';
       case 'C':
-        return 'bg-purple-50 text-purple-700 border border-purple-200/80';
+        return 'bg-purple-50 text-purple-700 border border-purple-200/80 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/20';
       case 'D':
-        return 'bg-amber-50 text-amber-700 border border-amber-200/80';
+        return 'bg-amber-50 text-amber-700 border border-amber-200/80 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/20';
       default:
-        return 'bg-slate-100 text-slate-700 border border-slate-200';
+        return 'bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
     }
   }
 
@@ -122,6 +493,20 @@ document.addEventListener('DOMContentLoaded', () => {
   let focusedTargetRoll = null;
 
   function initStaticEventListeners() {
+    // Platform shell boot (RGC is not installable: no PWA init by design).
+    initRail();
+    initDrawer();
+    initLogoutModal();
+    renderBottomNav();
+    renderDrawerMore();
+    syncHomeLinks();
+    const toastPill = document.getElementById('toast-pill');
+    if (toastPill) toastPill.addEventListener('click', hideToast);
+    var themeToggleBtn = document.getElementById('theme-toggle-btn');
+    if (themeToggleBtn) {
+      refreshThemeIcon();
+      themeToggleBtn.addEventListener('click', cycleTheme);
+    }
     if (authLoginBtn) {
       authLoginBtn.href = 'https://hscstack.site/login?redirect=' + encodeURIComponent(window.location.href);
       authLoginBtn.addEventListener('click', (e) => {
@@ -178,6 +563,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (studentModal && !studentModal.classList.contains('hidden')) closeStudentModal();
         if (privacyModal && !privacyModal.classList.contains('hidden')) closePrivacyModal();
         if (authModal && !authModal.classList.contains('hidden')) closeAuthModal();
+        const logoutModal = document.getElementById('logout-modal');
+        if (logoutModal && !logoutModal.classList.contains('hidden')) closeLogoutModal();
       }
     });
   }
@@ -421,61 +808,97 @@ document.addEventListener('DOMContentLoaded', () => {
     return inFlightAuthPromise;
   }
 
-  function renderUserProfileWidget() {
-    const container = document.getElementById('user-profile-widget');
-
-    if (!isLoggedIn || !currentUser) {
-      if (container) {
-        container.innerHTML = `
-          <button
-            type="button"
-            id="top-profile-login-btn"
-            class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:bg-slate-800 hover:shadow-md active:scale-95 cursor-pointer"
-          >
-            <span class="material-symbols-rounded text-white text-[16px]">login</span>
-            <span>Login</span>
-          </button>
-        `;
-        const btn = document.getElementById('top-profile-login-btn');
-        if (btn) {
-          btn.addEventListener('click', () => {
-            openAuthModal();
-          });
-        }
-      }
-      return;
-    }
-
-    const name = currentUser.name || 'User';
-    const rawImage = currentUser.image_url || currentUser.avatar || '';
+  function authAvatarHtml(sizeClass, textClass) {
+    const name = (currentUser && currentUser.name) || 'User';
+    const rawImage = (currentUser && (currentUser.image_url || currentUser.avatar)) || '';
     let imageUrl = '';
     if (rawImage) {
       imageUrl = rawImage.startsWith('http') ? rawImage : `https://hscstack.site${rawImage}`;
     }
-    const profileUrl = currentUser.username
-      ? `https://hscstack.site/u/${encodeURIComponent(currentUser.username)}`
-      : 'https://hscstack.site/profile';
-    const initial = name.trim().charAt(0).toUpperCase() || 'U';
-
-    const avatarHtml = imageUrl
-      ? `<img src="${imageUrl}" alt="${name}" class="h-7 w-7 rounded-full object-cover ring-1 ring-slate-200" onerror="this.outerHTML='<span class=\\'flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600 text-[11px] font-black text-white\\'>${initial}</span>'" />`
-      : `<span class="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600 text-[11px] font-black text-white">${initial}</span>`;
-
-    if (container) {
-      container.innerHTML = `
-        <a
-          href="${profileUrl}"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="flex items-center gap-2 rounded-full border border-slate-200/90 bg-white py-1 pr-3 pl-1 shadow-2xs transition-all hover:border-slate-300 hover:bg-slate-50 active:scale-98"
-        >
-          ${avatarHtml}
-          <span class="max-w-[120px] truncate text-xs font-bold text-slate-800 hidden sm:inline-block">
-            ${escapeHTML(name)}
-          </span>
-        </a>
-      `;
+    const initial = (name.trim().charAt(0).toUpperCase() || 'U').replace(/"/g, '');
+    if (imageUrl) {
+      return `<img src="${imageUrl}" alt="${escapeHTML(name)}" class="${sizeClass} rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700" />`;
     }
+    return `<span class="flex ${sizeClass} items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 ${textClass} font-bold text-white ring-1 ring-indigo-600/20">${initial}</span>`;
+  }
+
+  function profileUrl() {
+    if (currentUser && currentUser.username) {
+      return `https://hscstack.site/u/${encodeURIComponent(currentUser.username)}`;
+    }
+    return 'https://hscstack.site/profile';
+  }
+
+  function notifBellHtml(btnClass) {
+    return `<a href="https://hscstack.site/notifications" aria-label="Notifications" title="Notifications" class="${btnClass}"><span class="material-symbols-rounded text-[22px]">notifications</span></a>`;
+  }
+
+  // Renders every auth-dependent shell slot (rail / drawer / topbar /
+  // bottom bar) — the same surfaces the platform fills from page.props.
+  function renderUserProfileWidget() {
+    const loggedIn = !!(isLoggedIn && currentUser);
+    const name = loggedIn ? currentUser.name || 'User' : '';
+    const email = loggedIn ? currentUser.email || '' : '';
+
+    // Mobile topbar right: bell when logged in, indigo Login when logged out.
+    const topbar = document.getElementById('topbar-auth');
+    if (topbar) {
+      topbar.innerHTML = loggedIn
+        ? notifBellHtml('flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100')
+        : `<a href="https://hscstack.site/login" class="flex h-8 items-center gap-1.5 rounded-lg bg-indigo-600 px-3 text-[13px] font-semibold text-white transition-colors hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400"><span class="material-symbols-rounded text-[18px]">login</span>Login</a>`;
+    }
+
+    // Rail expanded footer auth card.
+    const railAuth = document.getElementById('rail-auth-expanded');
+    if (railAuth) {
+      railAuth.innerHTML = loggedIn
+        ? `<div class="flex items-center justify-between gap-3 rounded-xl border bg-white px-3 py-2.5 shadow-sm dark:border-slate-700 dark:bg-slate-800">` +
+          `<a href="${profileUrl()}" class="flex min-w-0 items-center gap-2.5">${authAvatarHtml('h-8 w-8', 'text-xs')}` +
+          `<div class="min-w-0 text-left"><p class="truncate text-xs font-semibold text-slate-900 dark:text-slate-100">${escapeHTML(name)}</p>` +
+          `<p class="truncate text-[11px] text-slate-500 dark:text-slate-400">${escapeHTML(email)}</p></div></a>` +
+          `<div class="flex shrink-0 items-center gap-1"><button type="button" data-logout-btn title="Log out" aria-label="Log out" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-rose-500 transition-colors hover:bg-rose-50 hover:text-rose-600 hover:shadow-sm dark:text-rose-400 dark:hover:bg-rose-950/40 dark:hover:text-rose-300"><span class="material-symbols-rounded text-[20px]">logout</span></button></div></div>`
+        : `<a href="https://hscstack.site/login" aria-label="Login" class="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-transparent bg-indigo-600 px-3 text-[13px] font-bold text-white shadow-sm transition-all duration-150 hover:border-indigo-700 hover:bg-indigo-700 hover:shadow-md dark:border-transparent dark:bg-indigo-500 dark:hover:border-indigo-400 dark:hover:bg-indigo-400"><span class="material-symbols-rounded text-[20px]">login</span><span>Login</span></a>`;
+    }
+
+    // Rail collapsed footer auth.
+    const railAuthCol = document.getElementById('rail-auth-collapsed');
+    if (railAuthCol) {
+      railAuthCol.innerHTML = loggedIn
+        ? `<a href="${profileUrl()}" title="Profile" aria-label="Profile" class="flex items-center justify-center">${authAvatarHtml('h-8 w-8', 'text-xs')}</a>`
+        : `<a href="https://hscstack.site/login" title="Login" aria-label="Login" class="flex h-10 w-full items-center justify-center rounded-xl border border-transparent bg-indigo-600 text-white shadow-sm transition-all hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400"><span class="material-symbols-rounded text-[20px]">login</span></a>`;
+    }
+
+    // Rail notifications rows (deep-link; the live dropdown needs same-origin auth).
+    const railNotif = document.getElementById('rail-notif-expanded');
+    if (railNotif) {
+      railNotif.innerHTML = loggedIn
+        ? `<div class="flex h-11 w-full items-center justify-start gap-2.5 px-3">` +
+          notifBellHtml('flex items-center justify-center text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100') +
+          `<a href="https://hscstack.site/notifications" class="flex-1 truncate text-left text-[13px] font-semibold text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">Notifications</a></div>`
+        : '';
+    }
+    const railNotifCol = document.getElementById('rail-notif-collapsed');
+    if (railNotifCol) {
+      railNotifCol.innerHTML = loggedIn
+        ? notifBellHtml('flex h-10 w-full items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-100')
+        : '';
+    }
+
+    // Drawer pinned footer auth (avatar h-9 + "Sign in", like the platform).
+    const drawerAuth = document.getElementById('drawer-auth');
+    if (drawerAuth) {
+      drawerAuth.innerHTML = loggedIn
+        ? `<div class="flex items-center gap-2.5 rounded-xl border bg-white px-3 py-2.5 shadow-sm dark:border-slate-700 dark:bg-slate-800">` +
+          `<a href="${profileUrl()}" class="flex min-w-0 flex-1 items-center gap-2.5" title="Profile" aria-label="Profile">${authAvatarHtml('h-9 w-9', 'text-xs')}` +
+          `<span class="min-w-0 text-left"><span class="block truncate text-sm font-semibold text-slate-900 dark:text-slate-100">${escapeHTML(name)}</span>` +
+          `<span class="block truncate text-xs text-slate-500 dark:text-slate-400">${escapeHTML(email)}</span></span></a>` +
+          `<button type="button" data-logout-btn title="Log out" aria-label="Log out" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-rose-500 transition-colors hover:bg-rose-50 hover:text-rose-600 hover:shadow-sm dark:text-rose-400 dark:hover:bg-rose-950/40 dark:hover:text-rose-300"><span class="material-symbols-rounded text-[20px]">logout</span></button></div>`
+        : `<a href="https://hscstack.site/login" class="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-transparent bg-indigo-600 px-3 text-[13px] font-bold text-white shadow-sm transition-all duration-150 hover:bg-indigo-700 hover:shadow-md dark:bg-indigo-500 dark:hover:bg-indigo-400"><span class="material-symbols-rounded text-[20px]">login</span>Sign in</a>`;
+    }
+
+    // Re-bind freshly rendered logout buttons, then refresh dependent nav.
+    initLogoutModal();
+    renderBottomNav();
   }
 
   function handleSearchFocusOrClick(e) {
@@ -593,16 +1016,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchContextBanner) {
       searchContextBanner.classList.remove('hidden');
       searchContextBanner.classList.add('flex');
-      searchContextBanner.className = 'flex items-center justify-between gap-2 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs mb-2';
+      searchContextBanner.className = 'flex items-center justify-between gap-2 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs mb-2 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300';
       
       const backBtnText = hasParentMultiList ? '← Matches' : `Show All (${rawData.length})`;
 
       searchContextBanner.innerHTML = `
         <div class="flex items-center gap-2 min-w-0">
-          <span class="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 shrink-0">${escapeHTML(targetStudent.Roll)}</span>
-          <span class="text-slate-600 truncate text-[11px] sm:text-xs">Classmates sequence</span>
+          <span class="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 shrink-0 dark:text-indigo-300 dark:bg-indigo-500/10 dark:border-indigo-500/20">${escapeHTML(targetStudent.Roll)}</span>
+          <span class="text-slate-600 truncate text-[11px] sm:text-xs dark:text-slate-400">Classmates sequence</span>
         </div>
-        <button id="btn-banner-action" class="text-[11px] sm:text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg transition-colors shrink-0 cursor-pointer touch-manipulation">
+        <button id="btn-banner-action" class="text-[11px] sm:text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg transition-colors shrink-0 cursor-pointer touch-manipulation dark:text-slate-200 dark:hover:text-white dark:bg-slate-800 dark:hover:bg-slate-700">
           ${backBtnText}
         </button>
       `;
@@ -642,13 +1065,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchContextBanner) {
       searchContextBanner.classList.remove('hidden');
       searchContextBanner.classList.add('flex');
-      searchContextBanner.className = 'flex items-center justify-between gap-2 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs mb-2';
+      searchContextBanner.className = 'flex items-center justify-between gap-2 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs mb-2 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300';
       searchContextBanner.innerHTML = `
         <div class="flex items-center gap-1.5 min-w-0">
-          <span class="font-bold text-slate-900 shrink-0">${matches.length} matches</span>
-          <span class="text-slate-500 truncate text-[11px] sm:text-xs">Select to view roll sequence</span>
+          <span class="font-bold text-slate-900 shrink-0 dark:text-gray-100">${matches.length} matches</span>
+          <span class="text-slate-500 truncate text-[11px] sm:text-xs dark:text-slate-400">Select to view roll sequence</span>
         </div>
-        <button id="btn-reset-multi-banner" class="text-[11px] sm:text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg transition-colors shrink-0 cursor-pointer touch-manipulation">
+        <button id="btn-reset-multi-banner" class="text-[11px] sm:text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg transition-colors shrink-0 cursor-pointer touch-manipulation dark:text-slate-200 dark:hover:text-white dark:bg-slate-800 dark:hover:bg-slate-700">
           Show All
         </button>
       `;
@@ -695,26 +1118,26 @@ document.addEventListener('DOMContentLoaded', () => {
       const matchContext = student.matchContext;
 
       // Clean, elegant card styling
-      let cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-white border border-slate-200 rounded-xl p-3 sm:p-3.5 cursor-pointer hover:border-slate-300 hover:bg-slate-50/70 transition-all shadow-2xs touch-manipulation active:scale-[0.99]';
+      let cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-white border border-slate-200 rounded-xl p-3 sm:p-3.5 cursor-pointer hover:border-slate-300 hover:bg-slate-50/70 transition-all shadow-2xs touch-manipulation active:scale-[0.99] dark:bg-slate-900 dark:border-slate-800 dark:hover:border-slate-700 dark:hover:bg-slate-800/60';
       let badgeHtml = '';
 
       if (isSequenceMode) {
         if (isDirectMatch) {
-          cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-indigo-50/40 border border-indigo-200 ring-1 ring-indigo-500/20 rounded-xl p-3 sm:p-3.5 cursor-pointer hover:bg-indigo-50/60 transition-all shadow-xs touch-manipulation active:scale-[0.99]';
+          cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-indigo-50/40 border border-indigo-200 ring-1 ring-indigo-500/20 rounded-xl p-3 sm:p-3.5 cursor-pointer hover:bg-indigo-50/60 transition-all shadow-xs touch-manipulation active:scale-[0.99] dark:bg-indigo-500/10 dark:border-indigo-500/30 dark:hover:bg-indigo-500/15';
           badgeHtml = `
-            <span class="inline-flex items-center gap-1 rounded-md bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 border border-indigo-200/60">
+            <span class="inline-flex items-center gap-1 rounded-md bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 border border-indigo-200/60 dark:bg-indigo-500/20 dark:text-indigo-200 dark:border-indigo-500/30">
               Searched
             </span>
           `;
         } else if (matchContext === 'before') {
           badgeHtml = `
-            <span class="inline-flex items-center rounded-md bg-slate-100 text-slate-500 text-[10px] font-medium px-2 py-0.5 border border-slate-200/60">
+            <span class="inline-flex items-center rounded-md bg-slate-100 text-slate-500 text-[10px] font-medium px-2 py-0.5 border border-slate-200/60 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700">
               Before
             </span>
           `;
         } else if (matchContext === 'after') {
           badgeHtml = `
-            <span class="inline-flex items-center rounded-md bg-slate-100 text-slate-500 text-[10px] font-medium px-2 py-0.5 border border-slate-200/60">
+            <span class="inline-flex items-center rounded-md bg-slate-100 text-slate-500 text-[10px] font-medium px-2 py-0.5 border border-slate-200/60 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700">
               After
             </span>
           `;
@@ -722,22 +1145,22 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const rollBadgeClass = isSequenceMode && isDirectMatch
-        ? 'font-mono text-xs sm:text-sm font-bold text-indigo-800 bg-white px-3 py-1 rounded-lg border border-indigo-200 shadow-2xs'
-        : 'font-mono text-xs sm:text-sm font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-lg border border-slate-200';
+        ? 'font-mono text-xs sm:text-sm font-bold text-indigo-800 bg-white px-3 py-1 rounded-lg border border-indigo-200 shadow-2xs dark:text-indigo-200 dark:bg-slate-900 dark:border-indigo-500/30'
+        : 'font-mono text-xs sm:text-sm font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-lg border border-slate-200 dark:text-slate-200 dark:bg-slate-800 dark:border-slate-700';
 
       const rollBadgeMobileClass = isSequenceMode && isDirectMatch
-        ? 'font-mono text-xs font-bold text-indigo-800 bg-indigo-100 px-2 py-0.5 rounded border border-indigo-200'
-        : 'font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200';
+        ? 'font-mono text-xs font-bold text-indigo-800 bg-indigo-100 px-2 py-0.5 rounded border border-indigo-200 dark:text-indigo-200 dark:bg-indigo-500/20 dark:border-indigo-500/30'
+        : 'font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 dark:text-slate-200 dark:bg-slate-800 dark:border-slate-700';
 
-      const nameClass = 'font-bold text-slate-900 text-sm sm:text-base leading-snug truncate group-hover:text-indigo-600 transition-colors';
+      const nameClass = 'font-bold text-slate-900 text-sm sm:text-base leading-snug truncate group-hover:text-indigo-600 transition-colors dark:text-gray-100 dark:group-hover:text-indigo-300';
 
       const actionButtonHtml = isPickerMode
-        ? `<div class="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 text-white text-xs font-bold group-hover:bg-slate-800 transition-colors shrink-0">
+        ? `<div class="w-20 hidden sm:flex items-center justify-end shrink-0 pr-2"><div class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 text-white text-xs font-bold group-hover:bg-slate-800 transition-colors shrink-0 dark:bg-gray-100 dark:text-slate-900">
              <span>Select</span>
              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-           </div>`
-        : `<div class="w-8 flex justify-end shrink-0 pl-2">
-             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 text-slate-300 group-hover:text-slate-600 transition-colors" viewBox="0 0 20 20" fill="currentColor">
+           </div></div>`
+        : `<div class="w-20 flex justify-end shrink-0 pr-2">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 text-slate-300 group-hover:text-slate-600 transition-colors dark:text-slate-600 dark:group-hover:text-slate-300" viewBox="0 0 20 20" fill="currentColor">
                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
              </svg>
            </div>`;
@@ -746,9 +1169,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       row.innerHTML = `
         <!-- Mobile View (visible block sm:hidden) -->
-        <div class="flex sm:hidden items-center justify-between gap-2.5 w-full">
+          <div class="flex sm:hidden items-center justify-between gap-2.5 w-full">
           <div class="flex items-center gap-2.5 min-w-0 flex-1">
-            <span class="font-mono text-xs font-bold text-slate-400 w-7 text-center shrink-0">
+            <span class="font-mono text-xs font-bold text-slate-400 dark:text-slate-500 w-7 text-center shrink-0">
               #${student.indexNumber}
             </span>
             <div class="flex flex-col min-w-0 flex-1 gap-0.5">
@@ -768,7 +1191,7 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
             </div>
           </div>
-          <div class="shrink-0 text-slate-300 group-hover:text-slate-600">
+          <div class="shrink-0 text-slate-300 group-hover:text-slate-600 dark:text-slate-600 dark:group-hover:text-slate-300">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
             </svg>
@@ -777,7 +1200,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <!-- Desktop View (visible sm:flex hidden) -->
         <div class="hidden sm:flex w-full items-center">
-          <div class="w-12 text-center shrink-0 font-mono text-xs font-bold text-slate-400">
+          <div class="w-12 text-center shrink-0 font-mono text-xs font-bold text-slate-400 dark:text-slate-500">
             ${student.indexNumber}
           </div>
           <div class="w-32 flex justify-center shrink-0">
@@ -844,8 +1267,8 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.type = 'button';
       btn.className = `w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl cursor-pointer text-xs sm:text-sm font-bold shrink-0 transition-all touch-manipulation ${
         currentPage === i
-          ? 'bg-slate-900 text-white shadow-xs'
-          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200'
+          ? 'bg-slate-900 text-white shadow-xs dark:bg-gray-100 dark:text-slate-900'
+          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100'
       }`;
       btn.textContent = i;
       btn.addEventListener('click', () => {
@@ -882,10 +1305,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const school = (student.Previous_School || '').trim();
       if (school) {
         modalSchool.textContent = school;
-        modalSchool.className = 'font-bold text-slate-800 text-right leading-snug text-xs sm:text-sm';
+        modalSchool.className = 'font-bold text-slate-800 text-right leading-snug text-xs sm:text-sm dark:text-slate-100';
       } else {
         modalSchool.textContent = 'Not Found';
-        modalSchool.className = 'font-semibold text-slate-400 text-right leading-snug text-xs sm:text-sm';
+        modalSchool.className = 'font-semibold text-slate-400 text-right leading-snug text-xs sm:text-sm dark:text-slate-500';
       }
     }
 
@@ -993,14 +1416,33 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.style.overflow = '';
   }
 
+  let toastTimer = null;
+
+  function hideToast() {
+    const toast = document.getElementById('toast');
+    const pill = document.getElementById('toast-pill');
+    if (toast) {
+      toast.classList.add('opacity-0');
+      setTimeout(() => {
+        if (toast.classList.contains('opacity-0')) toast.classList.add('invisible');
+      }, 300);
+    }
+    if (pill) pill.classList.add('-translate-y-4');
+    if (toastTimer) {
+      clearTimeout(toastTimer);
+      toastTimer = null;
+    }
+  }
+
   function showToast(msg) {
+    const toast = document.getElementById('toast');
+    const pill = document.getElementById('toast-pill');
+    if (!toast || !pill) return;
     toastText.textContent = msg;
-    toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
-    toast.classList.add('translate-y-0', 'opacity-100');
-    setTimeout(() => {
-      toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
-      toast.classList.remove('translate-y-0', 'opacity-100');
-    }, 2200);
+    toast.classList.remove('invisible', 'opacity-0');
+    pill.classList.remove('-translate-y-4');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, 2200);
   }
 
   function copyToClipboard(text) {
@@ -1057,22 +1499,22 @@ document.addEventListener('DOMContentLoaded', () => {
       {
         rank: 1,
         medal: '🥇',
-        badgeBg: 'bg-amber-100 text-amber-900 border-amber-300/80',
-        cardBg: 'bg-gradient-to-br from-amber-50/90 via-white to-amber-50/30 border-amber-200/90',
+        badgeBg: 'bg-amber-100 text-amber-900 border-amber-300/80 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/20',
+        cardBg: 'bg-gradient-to-br from-amber-50/90 via-white to-amber-50/30 border-amber-200/90 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 dark:border-slate-800',
         countBg: 'bg-amber-600 text-white'
       },
       {
         rank: 2,
         medal: '🥈',
-        badgeBg: 'bg-slate-100 text-slate-800 border-slate-300/80',
-        cardBg: 'bg-gradient-to-br from-slate-50/90 via-white to-slate-50/40 border-slate-200',
-        countBg: 'bg-slate-700 text-white'
+        badgeBg: 'bg-slate-100 text-slate-800 border-slate-300/80 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700',
+        cardBg: 'bg-gradient-to-br from-slate-50/90 via-white to-slate-50/40 border-slate-200 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 dark:border-slate-800',
+        countBg: 'bg-slate-700 text-white dark:bg-slate-200 dark:text-slate-900'
       },
       {
         rank: 3,
         medal: '🥉',
-        badgeBg: 'bg-orange-100 text-orange-900 border-orange-300/80',
-        cardBg: 'bg-gradient-to-br from-orange-50/80 via-white to-orange-50/20 border-orange-200/90',
+        badgeBg: 'bg-orange-100 text-orange-900 border-orange-300/80 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/20',
+        cardBg: 'bg-gradient-to-br from-orange-50/80 via-white to-orange-50/20 border-orange-200/90 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 dark:border-slate-800',
         countBg: 'bg-orange-600 text-white'
       }
     ];
@@ -1098,10 +1540,10 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
 
           <div class="min-w-0">
-            <h4 class="text-xs sm:text-sm font-black text-slate-900 line-clamp-2 leading-snug">
+            <h4 class="text-xs sm:text-sm font-black text-slate-900 dark:text-gray-100 line-clamp-2 leading-snug">
               ${escapeHTML(mainName)}
             </h4>
-            ${location ? `<p class="text-[11px] font-medium text-slate-500 mt-0.5 truncate">${escapeHTML(location)}</p>` : ''}
+            ${location ? `<p class="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5 truncate">${escapeHTML(location)}</p>` : ''}
           </div>
         </div>
       `;
