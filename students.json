@@ -6845,6 +6845,34 @@
         "Department": "HSC - Science",
         "Session": "2026-2027",
         "Academic Year": "1",
-        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609210653406ab08014f230a.jpg"
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609210653406ab08014f230a.jpg",
+        "SSC_Marks": 1007,
+        "SSC_GPA": 5.0,
+        "Previous_School": "Gondharbbapur High School, Rangpur",
+        "SSC_Roll": "189715"
+    },
+    {
+        "Roll": "1262701573",
+        "Name": "MD MUNTASIR TAHMID",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609202311406ab013cce2da0.jpg",
+        "SSC_Marks": 1005,
+        "SSC_GPA": 5.0,
+        "Previous_School": "Chila Hati Merchants Multi Lateral High School, Nilphamari",
+        "SSC_Roll": "214539"
+    },
+    {
+        "Roll": "1262701574",
+        "Name": "JEBA TAHASIN",
+        "Department": "HSC - Science",
+        "Session": "2026-2027",
+        "Academic Year": "1",
+        "Image_URL": "https://rgc.eshiksaems.com/image/student/202609201920436aafddab3d6ac.jpg",
+        "SSC_Marks": 1020,
+        "SSC_GPA": 5.0,
+        "Previous_School": "Lalmonirhat Govt. Girls' High School, Lalmonirhat",
+        "SSC_Roll": "228706"
     }
 ]
