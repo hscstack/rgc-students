@@ -151,19 +151,28 @@ document.addEventListener('DOMContentLoaded', () => {
    * ================================================================ */
   var PLATFORM_ORIGIN = 'https://hscstack.site';
   var VIRTUAL_PATH = '/projects/rgc-students';
-  var BOTTOM_NAV_KEY = 'hscstack:bottom-nav:v1';
+  var NAV_SPEC_CACHE_KEY = 'hscstack_nav_spec_v1';
   var RAIL_KEY = 'rail_collapsed';
 
-  var NAV_ITEMS = [
-    { label: 'Home', href: '/', icon: 'home' },
-    { label: 'Blogs', href: '/blogs', icon: 'menu_book' },
-    { label: 'Forum', href: '/forum', icon: 'forum' },
-    { label: 'Chat', railLabel: 'Global Chat', href: '/chat', icon: 'chat' },
-    { label: 'AI', href: '/ai', icon: 'smart_toy' },
-    { label: 'Support Center', collapsedLabel: 'Support', href: '/support', icon: 'help' },
-    { label: 'Donate', href: '/donate', icon: 'volunteer_activism' }
-  ];
-  var DEFAULT_MIDDLE_HREFS = ['/forum', '/chat', '/blogs'];
+  // Baked-in fallback = live platform spec (resources/js/lib/navigation.ts).
+  // Refreshed at runtime from GET /api/navigation when available.
+  var DEFAULT_NAV_SPEC = {
+    primary: [
+      { label: 'Home', href: '/', icon: 'home', showInBottom: true },
+      { label: 'Tracker', href: '/tracker', icon: 'timer', showInBottom: true },
+      { label: 'People', href: '/peers', icon: 'group', showInBottom: true },
+      { label: 'Forum', href: '/forum', icon: 'forum', showInBottom: true },
+      { label: 'Chat', href: '/chat', icon: 'chat', showInBottom: true },
+      { label: 'Blogs', href: '/blogs', icon: 'menu_book', showInBottom: false },
+      { label: 'AI', href: '/ai', icon: 'smart_toy', showInBottom: false }
+    ],
+    overflow: [
+      { label: 'Support Center', href: '/support', icon: 'help', showInBottom: false },
+      { label: 'Donate', href: '/donate', icon: 'volunteer_activism', showInBottom: false }
+    ]
+  };
+
+  var currentNavSpec = DEFAULT_NAV_SPEC;
 
   function absUrl(href) {
     return PLATFORM_ORIGIN + href;
@@ -184,45 +193,125 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function loadBottomMiddles() {
+  function allNavItems(spec) {
+    spec = spec || currentNavSpec;
+    return (spec.primary || []).concat(spec.overflow || []);
+  }
+
+  function sanitizeNavItem(raw) {
+    if (!raw || typeof raw.label !== 'string' || typeof raw.href !== 'string' || typeof raw.icon !== 'string') {
+      return null;
+    }
+    if (raw.href.charAt(0) !== '/' || raw.href.indexOf('//') === 0) return null;
+    if (!/^[a-z0-9_]+$/.test(raw.icon)) return null;
+    return { label: raw.label.slice(0, 32), href: raw.href.slice(0, 64), icon: raw.icon, showInBottom: raw.showInBottom === true };
+  }
+
+  function sanitizeNavSpec(raw) {
+    if (!raw || !Array.isArray(raw.primary) || !Array.isArray(raw.overflow)) return null;
+    var primary = raw.primary.map(sanitizeNavItem).filter(Boolean);
+    var overflow = raw.overflow.map(sanitizeNavItem).filter(Boolean);
+    if (primary.length === 0) return null;
+    return { primary: primary, overflow: overflow };
+  }
+
+  function loadCachedNavSpec() {
     try {
-      var raw = localStorage.getItem(BOTTOM_NAV_KEY);
-      if (!raw) return DEFAULT_MIDDLE_HREFS.slice();
-      var parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed)) return DEFAULT_MIDDLE_HREFS.slice();
-      var pool = NAV_ITEMS.filter(function (i) { return i.href !== '/'; }).map(function (i) { return i.href; });
-      var deduped = parsed.filter(function (h) { return pool.indexOf(h) !== -1; }).filter(function (h, idx, arr) { return arr.indexOf(h) === idx; });
-      if (deduped.length < 1 || deduped.length > 3) return DEFAULT_MIDDLE_HREFS.slice();
-      return deduped;
+      var raw = localStorage.getItem(NAV_SPEC_CACHE_KEY);
+      if (!raw) return null;
+      return sanitizeNavSpec(JSON.parse(raw));
     } catch (e) {
-      return DEFAULT_MIDDLE_HREFS.slice();
+      return null;
     }
   }
 
-  function findNav(href) {
-    for (var i = 0; i < NAV_ITEMS.length; i++) {
-      if (NAV_ITEMS[i].href === href) return NAV_ITEMS[i];
+  // Live nav sync: same channel as the auth check (same-site + CORS-open),
+  // so sidebar items follow the platform with zero redeploys.
+  var navRefreshInFlight = false;
+
+  function refreshNavSpec() {
+    if (navRefreshInFlight) return;
+    navRefreshInFlight = true;
+    var controller = null;
+    try {
+      controller = new AbortController();
+    } catch (e) {}
+    var timeoutId = null;
+    if (controller) {
+      timeoutId = setTimeout(function () { try { controller.abort(); } catch (e) {} }, 2500);
     }
-    return null;
+    fetch(PLATFORM_ORIGIN + '/api/navigation', controller ? { signal: controller.signal } : {})
+      .then(function (res) {
+        if (!res.ok) throw new Error('bad status');
+        return res.json();
+      })
+      .then(function (data) {
+        var spec = sanitizeNavSpec(data);
+        if (!spec) return;
+        if (JSON.stringify(spec) === JSON.stringify(currentNavSpec)) return;
+        currentNavSpec = spec;
+        try {
+          localStorage.setItem(NAV_SPEC_CACHE_KEY, JSON.stringify(spec));
+        } catch (e) {}
+        renderAllNav();
+      })
+      .catch(function () {})
+      .then(function () {
+        navRefreshInFlight = false;
+        if (timeoutId) clearTimeout(timeoutId);
+      });
   }
 
-  function accountItem() {
-    if (isLoggedIn && currentUser) {
-      return {
-        label: 'Account',
-        href: currentUser.username ? '/u/' + encodeURIComponent(currentUser.username) : '/profile',
-        icon: 'person'
-      };
+  // Platform rail label rules (Navigation.tsx): collapsed shortens
+  // Support Center; expanded uses Global Chat for /chat.
+  function collapsedLabel(item) {
+    return item.href === '/support' ? 'Support' : item.label;
+  }
+
+  function expandedLabel(item) {
+    return item.href === '/chat' ? 'Global Chat' : item.label;
+  }
+
+  var RAIL_ROW_BASE = 'group flex h-10 items-center gap-3 rounded-[10px] px-3 text-[13px] font-medium tracking-tight transition-colors duration-150 ';
+  var RAIL_ICON_BASE = 'material-symbols-rounded shrink-0 text-[22px] transition-colors duration-150 ';
+  var RAIL_IDLE = 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-100';
+  var RAIL_ICON_IDLE = 'text-slate-500 group-hover:text-slate-700 dark:text-slate-500 dark:group-hover:text-slate-300';
+
+  function renderRailNav() {
+    var items = allNavItems();
+    var col = document.getElementById('rail-nav-collapsed');
+    if (col) {
+      col.innerHTML = items.map(function (item) {
+        var homeAttr = item.href === '/' ? ' data-home-link' : '';
+        return '<a href="' + absUrl(item.href) + '"' + homeAttr + ' title="' + escapeHTML(item.label) + '" class="group flex h-[60px] w-full flex-col items-center justify-center rounded-xl px-1 text-center text-slate-600 transition-colors duration-150 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-100">' +
+          '<span class="' + RAIL_ICON_BASE + 'text-slate-500 group-hover:text-slate-700 dark:text-slate-500 dark:group-hover:text-slate-300">' + item.icon + '</span>' +
+          '<span class="mt-1 max-w-[64px] truncate text-[10px] font-medium leading-tight">' + escapeHTML(collapsedLabel(item)) + '</span></a>';
+      }).join('');
     }
-    return { label: 'Login', href: '/login', icon: 'login' };
+    var exp = document.getElementById('rail-nav-expanded');
+    if (exp) {
+      var rows = items.map(function (item) {
+        var homeAttr = item.href === '/' ? ' data-home-link' : '';
+        return '<a href="' + absUrl(item.href) + '"' + homeAttr + ' class="' + RAIL_ROW_BASE + RAIL_IDLE + '">' +
+          '<span class="' + RAIL_ICON_BASE + RAIL_ICON_IDLE + '">' + item.icon + '</span>' +
+          '<span class="truncate">' + escapeHTML(expandedLabel(item)) + '</span></a>';
+      }).join('');
+      var platformSection = exp.querySelector('[data-platform-section]');
+      if (platformSection) {
+        exp.innerHTML = rows;
+        exp.appendChild(platformSection);
+      } else {
+        exp.innerHTML = rows;
+      }
+    }
+    syncHomeLinks();
   }
 
   function renderBottomNav() {
     var host = document.getElementById('bottom-nav-items');
     if (!host) return;
-    var items = [{ label: 'Home', href: '/', icon: 'home' }]
-      .concat(loadBottomMiddles().map(findNav).filter(Boolean))
-      .concat([accountItem()]);
+    // Live platform rule: primary items flagged showInBottom (static, no account tab).
+    var items = (currentNavSpec.primary || []).filter(function (i) { return i.showInBottom; });
     host.innerHTML = items.map(function (item) {
       var active = VIRTUAL_PATH.indexOf(item.href) === 0 && item.href !== '/';
       return '' +
@@ -237,9 +326,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderDrawerMore() {
     var host = document.getElementById('drawer-more');
     if (!host) return;
-    var used = {};
-    loadBottomMiddles().forEach(function (h) { used[h] = true; });
-    var items = NAV_ITEMS.filter(function (i) { return i.href !== '/' && !used[i.href]; });
+    // Live platform rule: everything not flagged showInBottom.
+    var items = allNavItems().filter(function (i) { return !i.showInBottom; });
     if (items.length === 0) {
       host.innerHTML = '<p class="px-3 py-2 text-xs text-slate-500 dark:text-gray-400">All items are in your bottom bar. Customize in Profile → Bottom navigation.</p>';
       return;
@@ -253,6 +341,15 @@ document.addEventListener('DOMContentLoaded', () => {
         (active ? '<span class="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-600 dark:bg-indigo-400"></span>' : '') +
         '</a>';
     }).join('');
+    host.querySelectorAll('[data-drawer-link]').forEach(function (a) {
+      a.addEventListener('click', closeDrawer);
+    });
+  }
+
+  function renderAllNav() {
+    renderRailNav();
+    renderBottomNav();
+    renderDrawerMore();
   }
 
   /* ---- Rail collapse (same `rail_collapsed` key as the platform) ---- */
@@ -392,9 +489,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
     var overlay = document.getElementById('drawer-overlay');
     if (overlay) overlay.addEventListener('click', closeDrawer);
-    document.querySelectorAll('[data-drawer-link]').forEach(function (a) {
-      a.addEventListener('click', closeDrawer);
-    });
+    // Note: [data-drawer-link] rows are rendered by renderDrawerMore(),
+    // which binds their close-on-navigate handler itself.
   }
 
   /* ---- RGC is a web page, not an installable app: no manifest,
@@ -497,8 +593,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initRail();
     initDrawer();
     initLogoutModal();
-    renderBottomNav();
-    renderDrawerMore();
+    var cachedSpec = loadCachedNavSpec();
+    if (cachedSpec) currentNavSpec = cachedSpec;
+    renderAllNav();
+    refreshNavSpec();
     syncHomeLinks();
     const toastPill = document.getElementById('toast-pill');
     if (toastPill) toastPill.addEventListener('click', hideToast);
