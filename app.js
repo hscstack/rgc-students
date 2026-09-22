@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalDept = document.getElementById('modal-dept');
   const modalSession = document.getElementById('modal-session');
   const modalSchool = document.getElementById('modal-school');
+  const modalSchoolUnverified = document.getElementById('modal-school-unverified');
   const modalShowSchoolBtn = document.getElementById('modal-show-school-btn');
   const modalSchoolNotFound = document.getElementById('modal-school-not-found');
   const modalSchoolConfirm = document.getElementById('modal-school-confirm');
@@ -678,6 +679,7 @@ document.addEventListener('DOMContentLoaded', () => {
       modalSchoolAcceptBtn.addEventListener('click', () => {
         if (modalSchoolConfirm) modalSchoolConfirm.classList.add('hidden');
         if (modalSchool) modalSchool.classList.remove('hidden');
+        if (modalSchoolUnverified) modalSchoolUnverified.classList.remove('hidden');
       });
     }
 
@@ -1427,6 +1429,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Populate Previous School
     const school = (student.Previous_School || '').trim();
     if (modalSchoolConfirm) modalSchoolConfirm.classList.add('hidden');
+    if (modalSchoolUnverified) modalSchoolUnverified.classList.add('hidden');
 
     if (school) {
       if (modalSchool) {
