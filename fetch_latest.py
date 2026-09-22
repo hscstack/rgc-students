@@ -34,6 +34,8 @@ DEFAULT_HEADERS = {
 
 POSSIBLE_LEADERBOARD_PATHS = [
     Path(os.environ.get("DINAJPUR_LEADERBOARD_PATH", "")) if os.environ.get("DINAJPUR_LEADERBOARD_PATH") else None,
+    Path("/home/tajim/Projects/ssc2026-dinajpur-leaderboard/data/leaderboard.json"),
+    Path(__file__).parent.parent / "ssc2026-dinajpur-leaderboard" / "data" / "leaderboard.json",
     Path("/home/tajim/Projects/html/dinajpur/data/leaderboard.json"),
     Path(__file__).parent.parent / "dinajpur" / "data" / "leaderboard.json",
     Path(__file__).parent.parent.parent / "Projects" / "html" / "dinajpur" / "data" / "leaderboard.json",
