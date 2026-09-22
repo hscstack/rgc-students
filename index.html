@@ -712,12 +712,48 @@
           </div>
           
           <!-- Previous School Section -->
-          <div id="modal-school-row" class="flex justify-between items-start gap-3">
-            <div>
+          <div id="modal-school-row" class="pt-1">
+            <div class="flex justify-between items-center gap-3">
               <span class="text-slate-500 font-semibold block dark:text-slate-400">Previous School</span>
-              <span class="text-[10px] text-amber-700 font-bold leading-tight block dark:text-amber-400">(Potential, unverified)</span>
+              <div id="modal-school-content" class="text-right">
+                <span id="modal-school" class="font-bold text-slate-800 text-right leading-snug text-xs sm:text-sm dark:text-slate-100 hidden">Police Lines School and College, Rangpur</span>
+                <button
+                  id="modal-show-school-btn"
+                  type="button"
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 active:scale-95 border border-indigo-200/80 rounded-lg transition-all dark:bg-indigo-950/40 dark:text-indigo-400 dark:border-indigo-800/60 dark:hover:bg-indigo-900/50 cursor-pointer"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <span>Show School</span>
+                </button>
+                <span id="modal-school-not-found" class="font-semibold text-slate-400 text-right leading-snug text-xs sm:text-sm dark:text-slate-500 hidden">Not Found</span>
+              </div>
             </div>
-            <span id="modal-school" class="font-bold text-slate-800 text-right leading-snug text-xs sm:text-sm dark:text-slate-100">Police Lines School and College, Rangpur</span>
+
+            <!-- School Disclaimer / Confirmation Alert -->
+            <div id="modal-school-confirm" class="hidden mt-2 p-2.5 rounded-xl bg-amber-50 border border-amber-200/80 text-left dark:bg-amber-950/30 dark:border-amber-800/50">
+              <p class="text-[11px] sm:text-xs text-amber-900 dark:text-amber-200 font-medium leading-relaxed">
+                এই স্কুলটি সঠিক নাও হতে পারে, এটা শুধু তথ্যভিত্তিক অনুমান। আপনি কি তাও দেখতে চান?
+              </p>
+              <div class="mt-2 flex items-center justify-end gap-2">
+                <button
+                  id="modal-school-cancel-btn"
+                  type="button"
+                  class="px-2.5 py-1 text-[11px] font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 active:scale-95 transition dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 cursor-pointer"
+                >
+                  না
+                </button>
+                <button
+                  id="modal-school-accept-btn"
+                  type="button"
+                  class="px-2.5 py-1 text-[11px] font-bold text-white bg-amber-600 hover:bg-amber-700 active:scale-95 rounded-lg shadow-xs transition cursor-pointer"
+                >
+                  হ্যাঁ, দেখান
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 

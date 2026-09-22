@@ -32,6 +32,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalDept = document.getElementById('modal-dept');
   const modalSession = document.getElementById('modal-session');
   const modalSchool = document.getElementById('modal-school');
+  const modalShowSchoolBtn = document.getElementById('modal-show-school-btn');
+  const modalSchoolNotFound = document.getElementById('modal-school-not-found');
+  const modalSchoolConfirm = document.getElementById('modal-school-confirm');
+  const modalSchoolCancelBtn = document.getElementById('modal-school-cancel-btn');
+  const modalSchoolAcceptBtn = document.getElementById('modal-school-accept-btn');
   const modalCopyBtn = document.getElementById('modal-copy-btn');
 
   // Search Context Banner
@@ -652,6 +657,27 @@ document.addEventListener('DOMContentLoaded', () => {
         if (selectedStudent && selectedStudent.Roll) {
           copyToClipboard(selectedStudent.Roll);
         }
+      });
+    }
+
+    if (modalShowSchoolBtn) {
+      modalShowSchoolBtn.addEventListener('click', () => {
+        modalShowSchoolBtn.classList.add('hidden');
+        if (modalSchoolConfirm) modalSchoolConfirm.classList.remove('hidden');
+      });
+    }
+
+    if (modalSchoolCancelBtn) {
+      modalSchoolCancelBtn.addEventListener('click', () => {
+        if (modalSchoolConfirm) modalSchoolConfirm.classList.add('hidden');
+        if (modalShowSchoolBtn) modalShowSchoolBtn.classList.remove('hidden');
+      });
+    }
+
+    if (modalSchoolAcceptBtn) {
+      modalSchoolAcceptBtn.addEventListener('click', () => {
+        if (modalSchoolConfirm) modalSchoolConfirm.classList.add('hidden');
+        if (modalSchool) modalSchool.classList.remove('hidden');
       });
     }
 
@@ -1399,15 +1425,21 @@ document.addEventListener('DOMContentLoaded', () => {
     modalSession.textContent = student.Session || '2026-2027';
 
     // Populate Previous School
-    if (modalSchool) {
-      const school = (student.Previous_School || '').trim();
-      if (school) {
+    const school = (student.Previous_School || '').trim();
+    if (modalSchoolConfirm) modalSchoolConfirm.classList.add('hidden');
+
+    if (school) {
+      if (modalSchool) {
         modalSchool.textContent = school;
         modalSchool.className = 'font-bold text-slate-800 text-right leading-snug text-xs sm:text-sm dark:text-slate-100';
-      } else {
-        modalSchool.textContent = 'Not Found';
-        modalSchool.className = 'font-semibold text-slate-400 text-right leading-snug text-xs sm:text-sm dark:text-slate-500';
+        modalSchool.classList.add('hidden');
       }
+      if (modalShowSchoolBtn) modalShowSchoolBtn.classList.remove('hidden');
+      if (modalSchoolNotFound) modalSchoolNotFound.classList.add('hidden');
+    } else {
+      if (modalSchool) modalSchool.classList.add('hidden');
+      if (modalShowSchoolBtn) modalShowSchoolBtn.classList.add('hidden');
+      if (modalSchoolNotFound) modalSchoolNotFound.classList.remove('hidden');
     }
 
     studentModal.classList.remove('hidden');
