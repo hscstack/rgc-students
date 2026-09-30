@@ -1398,8 +1398,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modalSl) modalSl.textContent = student.indexNumber || '-';
     modalRoll.textContent = student.Roll || '-';
     if (modalSection) {
-      modalSection.textContent = `Section ${student.section || 'A'}`;
-      modalSection.className = `font-bold text-xs sm:text-sm font-mono px-2.5 py-0.5 rounded-lg ${getSectionBadgeClass(student.section)}`;
+      modalSection.textContent = `(Section ${student.section || 'A'})`;
+      modalSection.className = 'text-xs font-semibold text-slate-500 font-mono dark:text-slate-400';
     }
     if (modalDept) {
       modalDept.textContent = student.Department || 'HSC - Science';
