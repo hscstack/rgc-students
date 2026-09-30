@@ -1461,21 +1461,11 @@ document.addEventListener('DOMContentLoaded', () => {
             tr.className = 'hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors';
           }
 
-          let gradeBadgeClass = 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
-          if (sub.grade === 'A+') gradeBadgeClass = 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60';
-          else if (sub.grade === 'A') gradeBadgeClass = 'bg-teal-50 text-teal-700 border border-teal-200/80 dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-800/60';
-          else if (sub.grade === 'A-') gradeBadgeClass = 'bg-blue-50 text-blue-700 border border-blue-200/80 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/60';
-
           tr.innerHTML = `
-            <td class="py-2 px-3 text-slate-800 font-semibold dark:text-slate-200 text-xs leading-tight">
+            <td class="py-2 px-3.5 text-slate-700 font-semibold dark:text-slate-200 text-xs leading-snug">
               ${escapeHTML(sub.subject || sub.code || '-')}
             </td>
-            <td class="py-2 px-2 text-center">
-              <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold ${gradeBadgeClass}">
-                ${escapeHTML(sub.grade || '-')}
-              </span>
-            </td>
-            <td class="py-2 px-3 text-right font-bold text-slate-900 dark:text-gray-100 text-xs sm:text-sm">
+            <td class="py-2 px-3.5 text-right font-black text-slate-900 dark:text-gray-100 text-xs sm:text-sm">
               ${sub.mark !== undefined ? sub.mark : '-'}
             </td>
           `;
