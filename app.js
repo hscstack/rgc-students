@@ -1462,10 +1462,10 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           tr.innerHTML = `
-            <td class="py-2 px-3.5 text-slate-700 font-semibold dark:text-slate-200 text-xs leading-snug">
+            <td class="py-2.5 sm:py-3 px-4 sm:px-5 text-slate-800 font-semibold dark:text-slate-100 text-xs sm:text-sm leading-snug">
               ${escapeHTML(sub.subject || sub.code || '-')}
             </td>
-            <td class="py-2 px-3.5 text-right font-black text-slate-900 dark:text-gray-100 text-xs sm:text-sm">
+            <td class="py-2.5 sm:py-3 px-4 sm:px-5 text-right font-black text-slate-900 dark:text-white text-sm sm:text-base">
               ${sub.mark !== undefined ? sub.mark : '-'}
             </td>
           `;
