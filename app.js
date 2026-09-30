@@ -32,12 +32,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalDept = document.getElementById('modal-dept');
   const modalSession = document.getElementById('modal-session');
   const modalSchool = document.getElementById('modal-school');
-  const modalSchoolUnverified = document.getElementById('modal-school-unverified');
-  const modalShowSchoolBtn = document.getElementById('modal-show-school-btn');
-  const modalSchoolNotFound = document.getElementById('modal-school-not-found');
-  const modalSchoolConfirm = document.getElementById('modal-school-confirm');
-  const modalSchoolCancelBtn = document.getElementById('modal-school-cancel-btn');
-  const modalSchoolAcceptBtn = document.getElementById('modal-school-accept-btn');
+  const modalSscMarks = document.getElementById('modal-ssc-marks');
+  const modalMarksSection = document.getElementById('modal-marks-section');
+  const modalMarksTbody = document.getElementById('modal-marks-tbody');
+  const modalMarksCount = document.getElementById('modal-marks-count');
+  const modalMarksUnresolved = document.getElementById('modal-marks-unresolved');
   const modalCopyBtn = document.getElementById('modal-copy-btn');
 
   // Search Context Banner
@@ -535,23 +534,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // State
-  let isLoggedIn = null;
-  let currentUser = null;
-  let inFlightAuthPromise = null;
-
-  // Restore authenticated session instantly from localStorage
+  let cachedAuth = null;
   try {
-    const cachedAuth = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (cachedAuth) {
-      const parsed = JSON.parse(cachedAuth);
-      if (parsed && parsed.authenticated && parsed.user) {
-        isLoggedIn = true;
-        currentUser = parsed.user;
-      }
-    }
-  } catch (e) {
-    // Ignore JSON parse errors
-  }
+    cachedAuth = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY));
+  } catch (e) {}
+
+  let isLoggedIn = cachedAuth ? Boolean(cachedAuth.authenticated) : null;
+  let currentUser = cachedAuth ? cachedAuth.user : null;
+  let inFlightAuthPromise = null;
 
   // Render initial profile state immediately (0ms delay)
   renderUserProfileWidget();
@@ -657,29 +647,16 @@ document.addEventListener('DOMContentLoaded', () => {
       modalCopyBtn.addEventListener('click', () => {
         if (selectedStudent && selectedStudent.Roll) {
           copyToClipboard(selectedStudent.Roll);
+          const origSvg = modalCopyBtn.innerHTML;
+          modalCopyBtn.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-600 dark:text-emerald-400">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          `;
+          setTimeout(() => {
+            modalCopyBtn.innerHTML = origSvg;
+          }, 1500);
         }
-      });
-    }
-
-    if (modalShowSchoolBtn) {
-      modalShowSchoolBtn.addEventListener('click', () => {
-        modalShowSchoolBtn.classList.add('hidden');
-        if (modalSchoolConfirm) modalSchoolConfirm.classList.remove('hidden');
-      });
-    }
-
-    if (modalSchoolCancelBtn) {
-      modalSchoolCancelBtn.addEventListener('click', () => {
-        if (modalSchoolConfirm) modalSchoolConfirm.classList.add('hidden');
-        if (modalShowSchoolBtn) modalShowSchoolBtn.classList.remove('hidden');
-      });
-    }
-
-    if (modalSchoolAcceptBtn) {
-      modalSchoolAcceptBtn.addEventListener('click', () => {
-        if (modalSchoolConfirm) modalSchoolConfirm.classList.add('hidden');
-        if (modalSchool) modalSchool.classList.remove('hidden');
-        if (modalSchoolUnverified) modalSchoolUnverified.classList.remove('hidden');
       });
     }
 
@@ -720,7 +697,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ...item,
           indexNumber,
           section,
-          searchIndex: `${item.Roll || ''} ${item.Name || ''} ${item.Previous_School || ''} section ${section} sec ${section}`.toLowerCase()
+          searchIndex: `${item.Roll || ''} ${item.Name || ''} ${item.Previous_School || ''} ${item.total_marks || ''} section ${section} sec ${section}`.toLowerCase()
         };
       });
 
@@ -882,10 +859,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Auth System
   async function checkUserAuth() {
-    if (isLoggedIn === true) {
-      return true;
-    }
-
     if (inFlightAuthPromise) {
       return inFlightAuthPromise;
     }
@@ -1243,6 +1216,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const isDirectMatch = student.isDirectMatch;
       const matchContext = student.matchContext;
 
+      const schoolName = (student.Previous_School || '').trim();
+      const schoolHtml = schoolName
+        ? `<span class="text-[11px] sm:text-xs text-slate-500 font-medium truncate block dark:text-slate-400 mt-0.5">${escapeHTML(schoolName)}</span>`
+        : `<span class="text-[11px] sm:text-xs text-slate-400 italic truncate block dark:text-slate-500 mt-0.5">School Not Found</span>`;
+
       // Clean, elegant card styling
       let cardStyle = 'group flex flex-col sm:flex-row sm:items-center bg-white border border-slate-200 rounded-xl p-3 sm:p-3.5 cursor-pointer hover:border-slate-300 hover:bg-slate-50/70 transition-all shadow-2xs touch-manipulation active:scale-[0.99] dark:bg-slate-900 dark:border-slate-800 dark:hover:border-slate-700 dark:hover:bg-slate-800/60';
       let badgeHtml = '';
@@ -1295,7 +1273,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       row.innerHTML = `
         <!-- Mobile View (visible block sm:hidden) -->
-          <div class="flex sm:hidden items-center justify-between gap-2.5 w-full">
+        <div class="flex sm:hidden items-center justify-between gap-2.5 w-full">
           <div class="flex items-center gap-2.5 min-w-0 flex-1">
             <span class="font-mono text-xs font-bold text-slate-400 dark:text-slate-500 w-7 text-center shrink-0">
               #${student.indexNumber}
@@ -1315,6 +1293,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   Sec ${student.section}
                 </span>
               </div>
+              ${schoolHtml}
             </div>
           </div>
           <div class="shrink-0 text-slate-300 group-hover:text-slate-600 dark:text-slate-600 dark:group-hover:text-slate-300">
@@ -1334,11 +1313,12 @@ document.addEventListener('DOMContentLoaded', () => {
               ${highlightedRoll}
             </div>
           </div>
-          <div class="flex-1 px-4 min-w-0 flex items-center gap-3">
-            <div class="${nameClass}">
-              ${highlightedName}
+          <div class="flex-1 px-4 min-w-0 flex flex-col justify-center">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="${nameClass}">${highlightedName}</span>
+              ${badgeHtml}
             </div>
-            ${badgeHtml}
+            ${schoolHtml}
           </div>
           <div class="w-24 flex justify-center shrink-0">
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-bold ${getSectionBadgeClass(student.section)}">
@@ -1414,7 +1394,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function openStudentModal(student) {
     selectedStudent = student;
     modalName.textContent = student.Name || 'Student';
-    modalRollBadge.textContent = student.Roll || '-';
+    if (modalRollBadge) modalRollBadge.textContent = student.Roll || '-';
     if (modalSl) modalSl.textContent = student.indexNumber || '-';
     modalRoll.textContent = student.Roll || '-';
     if (modalSection) {
@@ -1424,25 +1404,137 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modalDept) {
       modalDept.textContent = student.Department || 'HSC - Science';
     }
-    modalSession.textContent = student.Session || '2026-2027';
 
     // Populate Previous School
     const school = (student.Previous_School || '').trim();
-    if (modalSchoolConfirm) modalSchoolConfirm.classList.add('hidden');
-    if (modalSchoolUnverified) modalSchoolUnverified.classList.add('hidden');
-
-    if (school) {
-      if (modalSchool) {
+    if (modalSchool) {
+      if (school) {
         modalSchool.textContent = school;
         modalSchool.className = 'font-bold text-slate-800 text-right leading-snug text-xs sm:text-sm dark:text-slate-100';
-        modalSchool.classList.add('hidden');
+      } else {
+        modalSchool.textContent = 'Not Found';
+        modalSchool.className = 'font-medium text-slate-400 text-right leading-snug text-xs sm:text-sm dark:text-slate-500 italic';
       }
-      if (modalShowSchoolBtn) modalShowSchoolBtn.classList.remove('hidden');
-      if (modalSchoolNotFound) modalSchoolNotFound.classList.add('hidden');
-    } else {
-      if (modalSchool) modalSchool.classList.add('hidden');
-      if (modalShowSchoolBtn) modalShowSchoolBtn.classList.add('hidden');
-      if (modalSchoolNotFound) modalSchoolNotFound.classList.remove('hidden');
+    }
+
+    // Populate SSC Total Marks
+    if (modalSscMarks) {
+      if (student.total_marks) {
+        modalSscMarks.textContent = `${student.total_marks}`;
+        modalSscMarks.className = 'font-extrabold text-sm sm:text-base text-indigo-600 dark:text-indigo-400';
+      } else {
+        modalSscMarks.textContent = 'Not Found';
+        modalSscMarks.className = 'font-medium text-xs sm:text-sm text-slate-400 dark:text-slate-500 italic';
+      }
+    }
+
+    // Populate Subject-Wise Marks Breakdown
+    if (modalMarksTbody) {
+      modalMarksTbody.innerHTML = '';
+      const marksObj = student.marks || {};
+      const markEntries = Object.values(marksObj);
+
+      if (markEntries.length > 0) {
+        if (modalMarksUnresolved) modalMarksUnresolved.classList.add('hidden');
+        if (modalMarksTbody.closest('.overflow-x-auto')) {
+          modalMarksTbody.closest('.overflow-x-auto').classList.remove('hidden');
+        }
+
+        let extraCount = 0;
+        let isExpanded = false;
+
+        markEntries.forEach(sub => {
+          const tr = document.createElement('tr');
+          const code = (sub.code || '').toString().trim();
+          const name = (sub.subject || '').toUpperCase().trim();
+          const isExtra = (
+            code === '147' ||
+            code === '156' ||
+            name.includes('PHYSICAL EDUCATION') ||
+            name.includes('CAREER EDUCATION')
+          );
+
+          if (isExtra) {
+            extraCount++;
+            tr.className = 'modal-extra-subject-row hidden bg-slate-50/40 dark:bg-slate-800/20 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors';
+          } else {
+            tr.className = 'hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors';
+          }
+
+          let gradeBadgeClass = 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+          if (sub.grade === 'A+') gradeBadgeClass = 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60';
+          else if (sub.grade === 'A') gradeBadgeClass = 'bg-teal-50 text-teal-700 border border-teal-200/80 dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-800/60';
+          else if (sub.grade === 'A-') gradeBadgeClass = 'bg-blue-50 text-blue-700 border border-blue-200/80 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/60';
+
+          tr.innerHTML = `
+            <td class="py-2 px-3 text-slate-800 font-semibold dark:text-slate-200 text-xs leading-tight">
+              ${escapeHTML(sub.subject || sub.code || '-')}
+            </td>
+            <td class="py-2 px-2 text-center">
+              <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold ${gradeBadgeClass}">
+                ${escapeHTML(sub.grade || '-')}
+              </span>
+            </td>
+            <td class="py-2 px-3 text-right font-bold text-slate-900 dark:text-gray-100 text-xs sm:text-sm">
+              ${sub.mark !== undefined ? sub.mark : '-'}
+            </td>
+          `;
+          modalMarksTbody.appendChild(tr);
+        });
+
+        if (modalMarksCount) {
+          modalMarksCount.textContent = `${markEntries.length - extraCount} Subjects`;
+        }
+
+        const toggleBtn = document.getElementById('modal-toggle-extra-subjects-btn');
+        const toggleText = document.getElementById('modal-toggle-extra-text');
+        const toggleIcon = document.getElementById('modal-toggle-extra-icon');
+
+        if (toggleBtn) {
+          if (extraCount > 0) {
+            toggleBtn.classList.remove('hidden');
+            if (toggleText) toggleText.textContent = 'Show CA Subjects';
+            if (toggleIcon) toggleIcon.classList.remove('rotate-180');
+
+            toggleBtn.onclick = () => {
+              isExpanded = !isExpanded;
+              const extraRows = modalMarksTbody.querySelectorAll('.modal-extra-subject-row');
+              extraRows.forEach(r => {
+                if (isExpanded) {
+                  r.classList.remove('hidden');
+                } else {
+                  r.classList.add('hidden');
+                }
+              });
+              if (toggleText) {
+                toggleText.textContent = isExpanded ? 'Hide CA Subjects' : 'Show CA Subjects';
+              }
+              if (toggleIcon) {
+                if (isExpanded) {
+                  toggleIcon.classList.add('rotate-180');
+                } else {
+                  toggleIcon.classList.remove('rotate-180');
+                }
+              }
+              if (modalMarksCount) {
+                modalMarksCount.textContent = isExpanded
+                  ? `${markEntries.length} Subjects`
+                  : `${markEntries.length - extraCount} Subjects`;
+              }
+            };
+          } else {
+            toggleBtn.classList.add('hidden');
+          }
+        }
+      } else {
+        if (modalMarksCount) modalMarksCount.textContent = '0 Subjects';
+        const toggleBtn = document.getElementById('modal-toggle-extra-subjects-btn');
+        if (toggleBtn) toggleBtn.classList.add('hidden');
+        if (modalMarksTbody.closest('.overflow-x-auto')) {
+          modalMarksTbody.closest('.overflow-x-auto').classList.add('hidden');
+        }
+        if (modalMarksUnresolved) modalMarksUnresolved.classList.remove('hidden');
+      }
     }
 
     studentModal.classList.remove('hidden');

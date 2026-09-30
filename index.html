@@ -413,7 +413,7 @@
           <div class="flex items-center justify-between px-1 mb-1.5 sm:mb-2">
             <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
               <span class="material-symbols-rounded text-[18px] text-amber-500">workspace_premium</span>
-              <span>Top Feeder Schools (Approximate)</span>
+              <span>Top Feeder Schools</span>
             </div>
             <span class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 hidden xs:inline">Top 3 by student intake</span>
           </div>
@@ -515,7 +515,7 @@
         <div class="hidden sm:flex p-3.5 bg-white/60 border border-slate-200 rounded-xl text-xs font-bold text-slate-500 uppercase tracking-wider items-center dark:bg-slate-900/60 dark:border-slate-800 dark:text-slate-400">
           <div class="w-12 text-center shrink-0">Sl.</div>
           <div class="w-32 text-center shrink-0">Roll Number</div>
-          <div class="flex-1 px-4">Student Name</div>
+          <div class="flex-1 px-4">Student &amp; School</div>
           <div class="w-24 text-center shrink-0">Section</div>
           <div class="w-20 text-right shrink-0 pr-2">Action</div>
         </div>
@@ -660,11 +660,11 @@
       class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 opacity-0 pointer-events-none transition-all duration-300 hidden p-3.5 sm:p-4"
     >
       <div
-        class="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl transform translate-y-6 transition-all duration-300 scale-95 flex flex-col p-5 sm:p-7 relative text-center items-center overscroll-contain dark:bg-slate-900 dark:border dark:border-slate-800"
+        class="bg-white rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl transform translate-y-6 transition-all duration-300 scale-95 flex flex-col p-5 sm:p-7 relative text-center items-center overscroll-contain dark:bg-slate-900 dark:border dark:border-slate-800"
         id="student-modal-inner"
       >
         <button
-          class="absolute top-4 right-4 h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors z-10 touch-manipulation cursor-pointer dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+          class="sticky top-0 self-end -mr-1 -mt-1 h-8 w-8 flex items-center justify-center rounded-full bg-slate-100/90 text-slate-500 hover:bg-slate-200 hover:text-slate-700 backdrop-blur-md shadow-2xs transition-colors z-30 touch-manipulation cursor-pointer shrink-0 mb-1 dark:bg-slate-800/90 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
           id="student-modal-close"
           aria-label="Close modal"
         >
@@ -674,26 +674,28 @@
           </svg>
         </button>
 
-        <div class="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-indigo-50 border border-indigo-100/80 text-indigo-600 shadow-xs mb-3 shrink-0 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:text-indigo-300">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 sm:w-8 sm:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-        </div>
-
-        <h3 id="modal-name" class="text-lg sm:text-xl font-black text-slate-900 dark:text-gray-100 leading-tight mb-1.5 px-2">Student Name</h3>
-        <div id="modal-roll-pill" class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-mono font-bold mb-4 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:text-indigo-300">
-          Roll: <span id="modal-roll-badge">1262701001</span>
-        </div>
-
         <div class="w-full bg-slate-50 border border-slate-100 rounded-2xl p-3.5 sm:p-4 text-left space-y-2.5 mb-4 text-xs sm:text-sm dark:bg-slate-800/50 dark:border-slate-800">
           <div class="flex justify-between items-center pb-2 border-b border-slate-200/60 dark:border-slate-700/60">
-            <span class="text-slate-500 font-semibold dark:text-slate-400">Serial No. (Sl.)</span>
-            <span id="modal-sl" class="font-bold text-slate-800 font-mono text-sm sm:text-base dark:text-slate-100">1</span>
+            <span class="text-slate-500 font-semibold dark:text-slate-400">Student Name</span>
+            <span id="modal-name" class="font-black text-slate-900 text-right text-sm sm:text-base dark:text-gray-100">Student Name</span>
           </div>
           <div class="flex justify-between items-center pb-2 border-b border-slate-200/60 dark:border-slate-700/60">
-            <span class="text-slate-500 font-semibold dark:text-slate-400">Roll Number</span>
-            <span id="modal-roll" class="font-bold text-indigo-700 font-mono text-sm sm:text-base dark:text-indigo-300">1262701001</span>
+            <span class="text-slate-500 font-semibold dark:text-slate-400">College Roll</span>
+            <div class="flex items-center gap-1.5">
+              <span id="modal-roll" class="font-bold text-indigo-700 font-mono text-sm sm:text-base dark:text-indigo-300">1262701001</span>
+              <button
+                id="modal-copy-btn"
+                type="button"
+                title="Copy Roll"
+                aria-label="Copy Roll"
+                class="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-lg transition active:scale-90 cursor-pointer"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+            </div>
           </div>
           <div class="flex justify-between items-center pb-2 border-b border-slate-200/60 dark:border-slate-700/60">
             <div>
@@ -703,74 +705,48 @@
             <span id="modal-section" class="font-bold text-xs sm:text-sm font-mono px-2.5 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/80">Section A</span>
           </div>
           <div class="flex justify-between items-center pb-2 border-b border-slate-200/60 dark:border-slate-700/60">
-            <span class="text-slate-500 font-semibold dark:text-slate-400">Department</span>
-            <span id="modal-dept" class="font-bold text-slate-800 dark:text-slate-100">HSC - Science</span>
+            <span class="text-slate-500 font-semibold dark:text-slate-400">Previous School</span>
+            <span id="modal-school" class="font-bold text-slate-800 text-right leading-snug text-xs sm:text-sm dark:text-slate-100">POLICE LINES SCHOOL AND COLLEGE</span>
           </div>
-          <div class="flex justify-between items-center pb-2 border-b border-slate-200/60 dark:border-slate-700/60">
-            <span class="text-slate-500 font-semibold dark:text-slate-400">Academic Session</span>
-            <span id="modal-session" class="font-bold text-slate-800 dark:text-slate-100">2026-2027</span>
-          </div>
-          
-          <!-- Previous School Section -->
-          <div id="modal-school-row" class="pt-1">
-            <div class="flex justify-between items-start gap-3">
-              <div>
-                <span class="text-slate-500 font-semibold block dark:text-slate-400">Previous School</span>
-                <span id="modal-school-unverified" class="text-[10px] text-amber-700 font-bold leading-tight block dark:text-amber-400 hidden">(Potential, unverified)</span>
-              </div>
-              <div id="modal-school-content" class="text-right">
-                <span id="modal-school" class="font-bold text-slate-800 text-right leading-snug text-xs sm:text-sm dark:text-slate-100 hidden">Police Lines School and College, Rangpur</span>
-                <button
-                  id="modal-show-school-btn"
-                  type="button"
-                  class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 active:scale-95 border border-indigo-200/80 rounded-lg transition-all dark:bg-indigo-950/40 dark:text-indigo-400 dark:border-indigo-800/60 dark:hover:bg-indigo-900/50 cursor-pointer"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                  </svg>
-                  <span>Show School</span>
-                </button>
-                <span id="modal-school-not-found" class="font-semibold text-slate-400 text-right leading-snug text-xs sm:text-sm dark:text-slate-500 hidden">Not Found</span>
-              </div>
-            </div>
-
-            <!-- School Disclaimer / Confirmation Alert -->
-            <div id="modal-school-confirm" class="hidden mt-2 p-2.5 rounded-xl bg-amber-50 border border-amber-200/80 text-left dark:bg-amber-950/30 dark:border-amber-800/50">
-              <p class="text-[11px] sm:text-xs text-amber-900 dark:text-amber-200 font-medium leading-relaxed">
-                এই স্কুলটি সঠিক নাও হতে পারে, এটা শুধু তথ্যভিত্তিক অনুমান। আপনি কি তাও দেখতে চান?
-              </p>
-              <div class="mt-2 flex items-center justify-end gap-2">
-                <button
-                  id="modal-school-cancel-btn"
-                  type="button"
-                  class="px-2.5 py-1 text-[11px] font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 active:scale-95 transition dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 cursor-pointer"
-                >
-                  না
-                </button>
-                <button
-                  id="modal-school-accept-btn"
-                  type="button"
-                  class="px-2.5 py-1 text-[11px] font-bold text-white bg-amber-600 hover:bg-amber-700 active:scale-95 rounded-lg shadow-xs transition cursor-pointer"
-                >
-                  হ্যাঁ, দেখান
-                </button>
-              </div>
-            </div>
+          <div class="flex justify-between items-center pt-0.5">
+            <span class="text-slate-500 font-semibold dark:text-slate-400">SSC Total Marks (Science)</span>
+            <span id="modal-ssc-marks" class="font-extrabold text-sm sm:text-base text-indigo-600 dark:text-indigo-400">1176</span>
           </div>
         </div>
 
-        <div class="w-full">
-          <button
-            id="modal-copy-btn"
-            class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer touch-manipulation"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-            <span>Copy Roll</span>
-          </button>
+        <!-- Subject-Wise Marks Breakdown Table Section -->
+        <div id="modal-marks-section" class="w-full mb-2 text-left">
+          <div class="flex items-center justify-between px-1 mb-2">
+            <span class="text-xs font-bold text-slate-700 uppercase tracking-wider dark:text-slate-300">SSC Subject-Wise Marks</span>
+            <span id="modal-marks-count" class="text-[10px] font-semibold text-slate-400 dark:text-slate-500">12 Subjects</span>
+          </div>
+          <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/80 shadow-2xs">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-50/80 border-b border-slate-200 dark:bg-slate-800/60 dark:border-slate-700/60 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                  <th class="py-2 px-3">Subject</th>
+                  <th class="py-2 px-2 text-center">Grade</th>
+                  <th class="py-2 px-3 text-right">Marks</th>
+                </tr>
+              </thead>
+              <tbody id="modal-marks-tbody" class="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+                <!-- Dynamically populated by app.js -->
+              </tbody>
+            </table>
+            <button
+              id="modal-toggle-extra-subjects-btn"
+              type="button"
+              class="hidden w-full py-1.5 px-3 text-[11px] font-medium text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 bg-slate-50/50 hover:bg-slate-50 dark:bg-slate-800/30 dark:hover:bg-slate-800/60 border-t border-slate-100 dark:border-slate-800/80 transition flex items-center justify-center gap-1 cursor-pointer"
+            >
+              <span id="modal-toggle-extra-text">Show CA Subjects</span>
+              <svg id="modal-toggle-extra-icon" class="w-3.5 h-3.5 transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <p id="modal-marks-unresolved" class="hidden text-center text-xs font-semibold text-slate-400 py-3 bg-slate-50 rounded-xl border border-slate-100 dark:bg-slate-800/40 dark:border-slate-800 dark:text-slate-500">
+            SSC marks data is not available for this student.
+          </p>
         </div>
       </div>
     </div>
